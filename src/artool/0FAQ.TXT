@@ -1,0 +1,107 @@
+
+                     ARtool Frequently Asked Questions
+                       written by Laurentiu Cristofor
+
+                                version 1.0
+                        Last updated on: 01/12/2002
+
+
+_____________________________________________________________________
+
+Q: What is this file?
+
+A: It's a Frequently Asked Questions for ARtool, or for short, a FAQ,
+but don't ask me how to pronounce that acronym because I never figured
+it out ;)
+_____________________________________________________________________
+
+Q: What is ARtool?
+
+A: ARtool is a Java application for mining association rules in binary
+databases. It is distributed under the GNU General Public License and
+has been implemented by Laurentiu Cristofor, that is me. I implemented
+the algorithms in ARtool for the research I did toward my PhD Thesis
+at University of Massachusetts at Boston. I have designed or
+participated in the design of some of these algorithms, while the
+others have been implemented for reference or out of curiosity.
+
+ARtool comprises three components: a set of Java packages, a set of
+command line tools, and a graphical user interface (GUI).
+
+For more information on using ARtool see the various text documents
+that came with it, as well as the online help topics accessible while
+running the ARtool GUI.
+_____________________________________________________________________
+
+Q: What is the relation between ARtool and ARMiner?
+Q: What is ARMiner?
+
+A: ARMiner is another data mining project that was implemented at
+UMass/Boston as a software engineering project. I was the project
+leader of the team that implemented ARMiner and I implemented the core
+mining classes, which now, after several revisions, are part of the
+laur.dm.ar package. One of ARMiner's goals was to be an educational
+tool that an instructor could use in a course to teach students about
+data mining algorithms. In this scenario students could experiment by
+adding their own algorithms, executing them, and seeing the
+results. This lead to the client-server design of ARMiner, to the
+group and user management feature, and to the capability of
+dynamically adding new algorithms to a running server.
+
+Recently, I wanted to have the ability of selecting among different
+algorithms for generating association rules out of frequent itemsets,
+the second stage of association rule mining. I also wanted the
+interface to display more information about the mining
+results. Modifying ARMiner to obtain this would have taken too much
+time, so instead I decided to start a new project whose goal would be
+to provide a single user mining application with more interface
+features. ARtool was the result and it only took me a week to build
+the interface for this new application.
+_____________________________________________________________________
+
+Q: What are the differences between ARMiner and ARtool?
+
+A: The features of ARMiner that are not present in ARtool are:
+
+      - the client-server design
+      - the group and user management
+      - the addition of algorithms at runtime
+      - the benchmarking
+
+I designed ARtool to be a single-user application so I dropped the
+first two features mentioned above. Since I don't add new algorithms
+every day, I also dropped the dynamic addition of algorithms. Now you
+need to add your new algorithm to ARtool by editing the source code
+and recompiling the application. The benchmarking is not present in
+the current release of ARtool, although it might show up in a future
+version. I prefer to use the command line tools for comparing the
+behavior of the algorithms.
+
+The new features of ARtool are:
+
+      - a set of command line tools that allow mining, synthetic
+        database generation, operations on databases, etc
+      - the GUI gives more information about a selected database
+      - the GUI gives more information about the frequent itemsets
+      - the GUI has a log window that keeps track of all operations
+        performed
+      - algorithm execution and database generation can now be
+        interrupted
+      - lengthy tasks are executed in threads and do not freeze the
+        interface
+      - an online help system - provides a quick introduction to
+        association rule mining and to using ARtool
+      - the GUI is easier to navigate since I use dialogs sparingly
+      - there are plenty of tooltips to help the novice user
+
+Also, all the classes in the laur.dm.ar package have been revised. I
+have rewrote some of them to make the code easier to understand. If
+you have used the classes in ARMiner for your own projects, then you
+should check the javadoc sources to see what methods have disappeared,
+what method names have been changed, and what new methods and classes
+have appeared. All mining algorithms have been retrofitted to be
+subclasses of laur.tools.AbortableThread, so that they could be
+executed as threads, and their execution could be interrupted upon a
+user request.
+_____________________________________________________________________
+EOF==================================================================

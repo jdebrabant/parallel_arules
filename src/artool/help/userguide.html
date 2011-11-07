@@ -1,0 +1,195 @@
+<HTML>
+<BODY>
+<H1>
+ARtool User's Guide
+</H1>
+
+<P>
+
+<H3>The graphical user interface</H3>
+
+If you have read the <I>Introduction to Association Rules</I> section,
+then you should be able to figure out quickly how to use the
+interface. In this section you will learn a little more about the
+finer details.<P>
+
+Initially you have to choose a database to work on. This is done on
+the <B>Database</B> tab. Once you have selected a database, you can
+start mining frequent itemsets or association rules from the other two
+tabs. The <B>Database</B> tab also gives you information about the
+characteristics of the database that you have selected.<P>
+
+ARtool breaks the mining process into two steps: mining the frequent
+itemsets and generating the association rules. In what follows we will
+refer to these steps as the first and second mining step.<P>
+
+If you want to perform the first mining step, just go to the
+<B>Frequent Itemsets</B> tab, select an algorithm and a minimum
+support value (a value greater than 0 and less or equal than 1), and
+press <B>Go</B>. If the algorithm takes too much time, more than you
+care to wait, then you can press <B>Abort</B> to stop the mining
+process. Note that it might take some time from when you press Abort
+to when the mining process is actually aborted.<P>
+
+Since the second mining step needs the results of the first step (the
+frequent itemsets), these are saved in a <I>cache</I> file, normally
+having the same name as the database but with an extension of
+<TT>.cache</TT>. If you want to read the contents of a previously
+generated cache file, simply select algorithm <I>Use Cache</I> on the
+<B>Frequent Itemsets</B> tab. This will be faster than using an
+algorithm which will always regenerate the cache.
+
+<H5>PITFALLS:</H5>
+<UL>
+<LI>If you abort the mining process, the cache file that results is
+incomplete. Using it further would result in incomplete results!
+
+<LI>The cache files are not cumulative, if you generate a cache file
+for minimum support 0.1, and later regenerate it for 0.5, the cache
+file will not contain the frequent itemsets with supports in interval
+[0.1, 0.5).
+</UL>
+
+For the second mining step, you need to select the minimum support
+value on the <B>Frequent Itemsets</B> tab, and then select an
+algorithm and a minimum confidence value (a value > 0 and <= 1) on
+the <B>Association Rules</B> tab. The <B>Go</B> and <B>Abort</B>
+buttons work in the same manner as those from the <B>Frequent
+Itemsets</B> tab. The mining algorithm that you selected will start by
+reading the cache file built during the first mining step. It is
+therefore important to have such a cache file.
+
+<H5>PITFALLS:</H5>
+<UL>
+<LI>If the cache file has not been created, the second mining step
+cannot be performed.
+
+<LI>If the cache file is incomplete due to an aborted mining process,
+or if it has been generated for a support greater than the one
+currently selected by the user, the results of the second mining step
+will be incomplete and possibly also incorrect.
+
+<LI>The minimum support value used in the second mining step is the
+value from the <B>Frequent Itemsets</B> tab. If that value is invalid,
+the second mining step cannot be performed.
+</UL>
+
+The log window at the bottom of the ARtool frame displays status and
+error messages, so it is useful to always keep an eye on it. You can
+clear the log window if you wish by selecting the <B>Program/Clear</B>
+log menu item.<P>
+
+The results of the two mining steps are presented in tables and they
+can be ordered ascendingly or descendingly on each column by
+double-clicking the column headers. The columns containing itemsets
+are sorted according to the size of the itemset. You can also
+double-click on a table row to display its contents in the log window,
+which is useful when the itemset is too large to be displayed entirely
+in the table.<P>
+
+You can evaluate the rules discovered using various measures by going
+to the <B>Program/Compute measure</B> menu entry.<P>
+
+If you want to free some memory, then you can clear the result tables
+by selecting either <B>Discard itemsets</B> or <B>Discard rules</B>
+from the <B>Program</B> menu.<P>
+
+The <B>Generate a synthetic database</B> menu item allows you to
+create a synthetic database. For more info about this you should check
+reference <B>[1a]</B>. Note that if you generate a database with the
+same name as an existing database, the existing database will be
+overwritten.<P>
+
+<H3>The command line tools</H3>
+
+The command line tools are easy to use, just execute each one of them
+with no parameters to get usage instructions.<P>
+
+Below is a list of the command line tools along with a brief
+description of each of them:
+
+<UL>
+<LI>minedb - mines association rules in a database.
+
+<LI>gendb - generates a database, useful for seeing how an algorithm
+behaves on databases of various parameters.
+
+<LI>dbtool - used to perform various operations on a database, like
+checking its integrity, setting a new description, displaying
+information, etc.
+
+<LI>diffcache - performs a comparison between two cache files. It's
+useful when debugging a mining algorithm, to see whether it produces
+the same output as an algorithm you trust.
+
+<LI>db2asc - converts a <TT>.db</TT> file to a text format,
+<TT>.asc</TT>.
+
+<LI>asc2db - converts a <TT>.asc</TT> text file to <TT>.db</TT>
+format.
+</UL>
+
+One thing to note is that all command line tools require that the name
+of the database files passed to them do not include the extension. The
+<TT>.db</TT> extension is appended automatically.<P>
+
+There is a tutorial for the <TT>asc2db</TT> and <TT>db2asc</TT> tools
+in the file <TT>0ASC_TUTORIAL.TXT</TT>. These utilities are useful if
+you want to convert data to the <TT>.db</TT> format.<P>
+
+<H3>The Java packages</H3>
+
+All classes from the Java packages <TT>laur.dm.ar</TT>,
+<TT>laur.rand</TT>, and <TT>laur.tools</TT> contain documentation
+comments, so you should use javadoc to generate the packages
+documentation.<P>
+
+I will present here an overview of the classes from the
+<TT>laur.dm.ar</TT> package, which is the package containing the
+association rule mining algorithms:
+
+<UL>
+<LI><TT>Itemset</TT> and <TT>AssociationRule</TT> encapsulate the
+respective concepts. They implement <TT>CriteriaComparable</TT> so that
+they can be sorted on various criteria.
+
+<LI><TT>CriteriaSorter</TT> is a class that sorts
+<TT>CriteriaComparable</TT> objects.
+
+<LI><TT>DBReader</TT> and <TT>DBWriter</TT> are the classes that allow
+reading and writing to a <TT>.db</TT> file. Inside their sources you
+can find a description of the <TT>.db</TT> binary file
+format. <TT>DBException</TT> is the exception thrown by these classes.
+
+<LI><TT>DBCacheReader</TT> and <TT>DBCacheWriter</TT> are the classes
+that allow reading and writing to a <TT>.cache</TT> file. These files
+contain serialized <TT>Itemsets</TT> objects.
+
+<LI><TT>HashTree</TT> and <TT>SET</TT> are two data structures used by
+the mining algorithms. <TT>SET</TT> is a prefix tree and is used by
+the algorithms implementing the second mining step to store and
+retrieve the frequent itemsets found in the first mining
+step. <TT>SETException</TT> is the exception that is thrown by
+<TT>SET</TT> methods.
+
+<LI><TT>SyntheticDataGenerator</TT> does what its name says and is
+built using the classes from <TT>laur.rand</TT>.
+
+<LI><TT>FrequentItemsetsMiner</TT> and <TT>AssociationsMiner</TT> are
+abstract classes that are extended by all first mining step algorithms
+and, respectively, second mining step algorithms. They extend
+<TT>laur.tools.AbortableThread</TT>.
+
+<LI><TT>Apriori</TT>, <TT>Closure</TT>, <TT>ClosureOpt</TT>, and
+<TT>FPgrowth</TT> implement the frequent itemset mining algorithms
+with the same name. <TT>ClosureOpt</TT> is a slightly optimized
+version of <TT>Closure</TT>.
+
+<LI><TT>AprioriRules</TT>, <TT>CoverRules</TT>, and
+<TT>CoverRulesOpt</TT> implement the association rule mining
+algorithms with the same name. <TT>CoverRulesOpt</TT> is an optimized
+version of <TT>CoverRules</TT>.
+</UL>
+
+</BODY>
+</HTML>

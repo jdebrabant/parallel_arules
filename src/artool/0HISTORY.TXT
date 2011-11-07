@@ -1,0 +1,39 @@
+v1.1.2 - 02/04/2002 - made a small optimization in HashTree
+                    - simplified code for AprioriRules
+
+v1.1.1 - 01/17/2002 - cleaned-up ARtool interface code
+                    - added Close button to GenDBDialog                    
+                    - modified AR generation algorithms to set the
+                      support of the antecedents and consequents of
+                      the generated rules
+                    - AssociationRule can now compute the value of
+                      a rule according to a number of measures
+                    - added Compute measure menu item to allow the
+                      user to compute other measures than confidence
+
+v1.0.0 - 01/12/2002 - First release of ARtool.
+_____________________________________________________________________
+
+History of ARtool up to first release:
+
+2002 - I implemented the ARtool GUI and made some more changes to the
+command line utilities and the laur.dm.ar and laur.tools Java
+packages.
+
+2001 - I revisited the sources from ARMiner, made some fixes and many
+style changes, put core files in package laur.dm.ar, added
+algorithms CoverRules and CoverRulesOpt, and created tools minedb,
+gendb, diffcache, and dbtool.
+
+2000-2001 - While maintaining ARMiner I have fixed several errors and
+added the new algorithms ClosureOpt and FPgrowth, and the new tools
+asc2db and db2asc.
+
+2000 - For the ARMiner project I rewrote in Java the original C++
+implementations of Apriori and Closure. While doing this I have also
+performed an optimization of the Closure algorithm.
+
+1999 - Together with my wife, Dana Cristofor, we implemented in C++
+the algorithms Apriori and Closure.
+
+EOF==================================================================

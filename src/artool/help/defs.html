@@ -1,0 +1,120 @@
+<HTML>
+<BODY>
+<H1>
+Definitions
+</H1>
+
+<P>
+
+ARtool mines association rules in binary databases.<P>
+
+Binary databases are databases whose attributes can take only two
+values. For example, in a database of supermarket transactions the
+attributes could be the items sold by the supermarket and the values
+they can take could be <TT>present</TT> or <TT>absent</TT>, according
+to whether the items were or were not involved in transactions. Each
+row of the database would represent an individual transaction. Because
+the first applications of association rules were made on supermarket
+data, binary attributes are historically called <I>items</I> and rows
+may also be called transactions. If an item is present in a row we say
+that the row <I>contains</I> the item.<P>
+
+A set of items is also called <I>itemset</I>. The <I>support</I> of an
+itemset is the fraction of the rows of the database that contain ALL
+of the items in the itemset.<P>
+
+An association rule is composed of two parts, the <I>antecedent</I>
+and the <I>consequent</I>, and is usually denoted as:<BR>
+
+<CENTER>
+antecedent -> consequent.
+</CENTER><P>
+
+An association rule suggests that the presence of the antecedent in a
+row implies to some extent the presence of the consequent. To measure
+the extent of this implication two measures are used:
+<OL>
+<LI>the <I>support</I> of the rule gives the fraction of the rows of
+the database that contain both the antecedent and the consequent of
+the rule. The support of a rule tells us in how many instances (rows)
+the rule can be observed.<P>
+
+<LI>the <I>confidence</I> of the rule tells us what percentage of the
+rows that contain the antecedent also contain the consequent of the
+rule. The confidence of a rule gives us an idea of the strength of the
+influence that the antecedent has on the presence of the consequent of
+the rule.
+</OL>
+
+The association rule mining problem consists of finding all
+association rules existing in a database, having support and
+confidence greater than a minimum support value and, respectively, a
+minimum confidence value.<P>
+
+Itemsets that have support greater than the minimum support value are
+called <I>frequent</I>. Some authors also use the term <I>large</I>
+but I prefer to use this term to denote the maximal frequent
+itemsets.<P>
+
+Association rule mining is usually performed in two steps:
+
+<OL>
+<LI>finding (all) frequent itemsets
+
+<LI>generating (all) association rules starting from the frequent
+itemsets discovered in the precedent step
+</OL>
+
+The word <I>all</I> is enclosed in parentheses because there are
+algorithms who are only looking for a representative subset of the set
+of frequent itemsets (this may be the set of <I>closed</I> itemsets,
+or the set of maximal frequent itemsets), and also there are
+algorithms that look only for a subset of association rules (which may
+consist of "non-redundant" or "interesting" associations).
+
+The first step is computationally intensive; depending on the data and
+the mining parameters this step could take hours, or even days, unless
+the application happens to run out of memory first.<P>
+
+The second step takes normally much less time than the first but can
+result in a large number of rules, in the order of thousands, tens of
+thousands, or even higher. Browsing through these rules and finding
+useful ones is another mining problem in itself. There are however
+algorithms who only generate rules that are interesting or
+non-redundant in the sense of some definition of interestingness or
+redundancy.<P>
+
+There are a number of other measures that can be used to determine the
+value of an association rule. We mention a number of them here:
+
+<UL>
+<LI>The <I>Piatetsky-Shapiro</I> measure of a rule A->C is defined as:<P>
+
+support(AC) - support(A) * support(C)<P>
+
+This measure was introduced by Gregory Piatetsky-Shapiro. If we think
+of the support of an itemset as approximating the probability of that
+itemset appearing in a row of the table, then the Piatetsky-Shapiro
+measure tells us how much the actual occurrence of AC differs from the
+expected value. Note the this measure is symmetric, so the measure
+will have the same values for A->C and C->A.<P>
+
+<LI>The <I>lift</I> is defined as:<P>
+
+support(AC) / (support(A) * support(C))<P>
+
+The lift is a measure used in statistics that tells us how much the
+presence of the antecedent influences the appearance of the
+consequent. Like Piatetsky-Shapiro, it is a symmetrical measure.<P>
+
+<LI>The <I>influence</I> is defined as:<P>
+
+support(AC) / support(A) - support(C)<P>
+
+I have come up with this measure while implementing ARtool. The
+influence is derived from the lift, however, unlike the lift and the
+Piatetsky-Shapiro measures, it is asymmetrical.<P>
+</UL>
+
+</BODY>
+</HTML>

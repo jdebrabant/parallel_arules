@@ -1,0 +1,82 @@
+<HTML>
+<BODY>
+<H1>
+ARtool Overview
+</H1>
+
+<P>
+
+ARtool is a free Java association rule mining application that is
+distributed under the GNU General Public License. It consists of three
+components:
+
+<UL>
+<LI>a set of Java packages:
+<UL>
+<LI><TT>laur.dm.ar</TT> - containing association rule mining
+algorithms and data structures.
+
+<LI><TT>laur.rand</TT> - containing a few classes for generating
+random numbers or making random selections.
+
+<LI><TT>laur.tools</TT> - containing various useful Java classes, not
+all of them being used by ARtool.
+</UL>
+
+<LI>a set of command line utilities:
+<UL>
+<LI><TT>minedb</TT> - mines association rules on a specified database.
+
+<LI><TT>gendb</TT> - generates a synthetic database.
+
+<LI><TT>dbtool</TT> - provides several useful database functions:
+checking integrity, displaying information, setting a new description,
+etc.
+
+<LI><TT>diffcache</TT> - compares the contents of two cache files.
+
+<LI><TT>asc2db</TT> and <TT>db2asc</TT> - programs for converting a
+database to an ASCII format and back.
+</UL>
+
+<LI>a Graphical User Interface built on top of the Java packages. This
+provides a more intuitive interface for the mining process but there
+are some functions that can only be performed by using the command
+line tools.
+</UL>
+
+<P>
+
+While I have tried to provide an easy to use interface, ARtool is not
+a program targeted to the casual user. To use it you should already
+know or want to learn more about association rules. These help pages
+provide a quickstart, but for more information you should read the
+papers mentioned in the <I>References</I> section, as well as looking
+over the source code for ARtool.
+
+<H3>What ARtool isn't:</H3>
+
+<UL>
+<LI>a mining application capable of extracting association rules from
+any database - ARtool works only on binary databases stored in a
+custom format.<P>
+
+<LI>an application for the casual or commercial user - I wrote ARtool
+for myself and for other people with an interest in researching
+association rules algorithms. ARtool is more of an educational and
+research tool than a practical data mining application.<P>
+</UL>
+
+<P>
+
+To find more about ARtool read the <I>ARtool User's Guide</I> section and
+check also the ARtool web site:<BR>
+
+<CENTER>
+<TT>http://www.cs.umb.edu/~laur/ARtool/</TT>.
+</CENTER>
+
+<P>
+
+</BODY>
+</HTML>

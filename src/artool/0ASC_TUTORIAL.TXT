@@ -1,0 +1,215 @@
+
+
+      Small tutorial for using the asc2db and db2asc utilities
+
+                                  by
+                          Laurentiu Cristofor
+                               01/11/2002
+
+
+
+The contents of this file are the following
+
+1 Overview
+2 Description and usage of the .asc format
+3 Using asc2db
+4 Using db2asc
+
+_____________________________________________________________________
+
+1 Overview
+==========
+
+ARtool uses a custom format for its database files (which will be
+henceforth referred to as the .db format and is identical to the
+format used in ARMiner). The asc2db and db2asc are utilities that
+allow the conversion of a .db file to a specially formatted ASCII file
+(we will refer to this as .asc) and respectively the conversion of a
+.asc file into a .db file. The .asc files can be easily read and
+modified with any decent ASCII editor.
+
+2 Description and usage of the .asc format
+==========================================
+
+We will take a small example of supermarket data. Suppose the items
+sold by a (very, very small) shop are green apples, red apples,
+oranges, bananas, and grapes. Also suppose that in this morning you
+had three customers, one bought green apples and grapes, one bought
+only oranges, and the last one bought oranges and grapes. This
+activity can be represented in the .asc format as follows:
+
+1 green apples
+2 red apples
+3 oranges
+4 bananas
+5 grapes
+BEGIN_DATA
+1 5
+3
+3 5
+END_DATA
+
+There are two distinct parts of this file, the first one contains a
+listing of all the items you can sell, or otherwise said, of all the
+items that could participate in a transaction. This part looks is:
+
+1 green apples
+2 red apples
+3 oranges
+4 bananas
+5 grapes
+
+The format is pretty simple. It must consist of a positive number
+followed by a string (which can contain blank spaces). It is important
+that the numbers be assigned in increasing order starting from
+1. Empty lines are allowed to appear in this section. This section
+enumerates all entities described by the data and between which ARtool
+will later be used to look for association rules.
+
+The second part consists of the actual data:
+
+BEGIN_DATA
+1 5
+3
+3 5
+END_DATA
+
+In our case we had 3 transactions and these are each represented on a
+separate line. The first transaction involved green apples and grapes
+and they are represented by the numbers associated in the first
+section, that is 1 for green apples and 5 for grapes. You can check
+the other transactions as an exercise. Note that this section must be
+enclosed between a BEGIN_DATA and END_DATA lines. Anything appearing
+after the END_DATA line will be ignored. Blank lines are allowed to
+appear in this section. Note that although the numbers appearing in
+each line are sorted, this is not required by the format. You can list
+the numbers in any order and the file can still be processed
+correctly, however we suggest to always list the numbers in a
+transaction in increasing order, because in this way asc2db will
+process the file more efficiently.
+
+This concludes our supermarket data example as well as the description
+of the .asc format. However most of the time your data will not be
+similar to the one used in this example. If that happens, then you
+will have to try to figure out some way in which you can express your
+data in the .asc format. To give you an idea, we will go over another
+example:
+
+Suppose you have some sort of census data like the one below:
+
+SSN#    Age     Sex    Married   Num_kids  Income
+006     26      M      No        0         25000$
+345     54      F      Yes       2         55000$
+743     37      M      Yes       1         80000$
+
+What can you do with it? Let's look at each column:
+
+SSN#: this is unique for each entry, there is no sense to look for
+association rules involving SSN#, at least not in this data, since
+each SSN# appears only once in the whole data. So we can simply ignore
+this field for mining purposes.
+
+Age: this attribute can take a variety of values. ARtool cannot handle
+such attributes easily, in fact it only considers binary
+attributes. We need to discretize this attribute, replacing for
+example ages 0-21 with "very young age", 22-35 with "young age", 35-55
+with "middle age", etc
+
+Sex: this has two values: "male" and "female", so we could create two
+attributes out of it.
+
+Married: again we can create two attributes: "married" and "not
+married"
+
+Num_kids: this also has to be discretized, maybe in "no kids", "one
+kid", "several kids".
+
+Income: we could also discretize this into "small", "average", and
+"high".
+
+The discretization should be made such that it will identify clearly
+the ranges that present interest for the person who will do
+the mining of this data.
+
+With these changes we could represent the above data in .asc format
+as:
+
+1 very young age
+2 young age
+3 middle age
+4 old age
+5 male
+6 female
+7 married
+8 not married
+9 no kids
+10 one kid
+11 several kids
+12 small income
+13 average income
+14 high income
+BEGIN_DATA
+2 5 8 9 12
+3 6 7 11 13
+3 5 7 10 14
+END_DATA
+
+From this file you can now create a .db file and then mine it using
+ARtool or ARMiner.
+
+3 Using asc2db
+==============
+
+The asc2db program can be used to convert a correctly formatted .asc
+file to ARtool's .db format. Suppose you have a sample.asc file (one
+has been provided in this package). Then you create a .db file from it
+by typing:
+
+java asc2db sample
+
+which will create a sample.db file. If you want the .db file to have a
+different name then you can specify it on the command line as a second
+parameter:
+
+java asc2db sample artdata
+
+which will now produce an artdata.db file out of the sample.asc input.
+
+Note that the extensions .asc and .db do not have to be specified on
+the command line, they are automatically appended by asc2db.
+
+4 Using db2asc
+==============
+
+The db2asc program converts a .db file to .asc format. This can be
+useful if you want to read or verify the content of a .db file. You
+can also use it to modify by hand the contents of a .db file by first
+converting it to a .asc file, then editing the .asc file, and finally
+converting it back to a .db file.
+
+db2asc is used in a similar way to its counterpart, asc2db. If you
+need to convert the armdata.db database to .asc format, then you can
+type:
+
+java db2asc artdata
+
+which will produce an armdata.asc file. If you want a different name
+for the output, then you can pass it on the command line as a second
+argument:
+
+java db2asc artdata arttxt
+
+which will produce an arttxt.asc file representing the contents of the
+artdata.db database.
+
+Again, the extensions .asc and .db should not be entered on the
+command line, since they are automatically appended by db2asc.
+
+Note that db2asc checks the integrity of the database before
+converting it. If the database is corrupted the conversion is aborted.
+
+_____________________________________________________________________
+
+Thanks for reading this document, if you have any questions you can
+contact me by email at laur@cs.umb.edu
+EOF==================================================================
