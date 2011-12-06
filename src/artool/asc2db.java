@@ -103,12 +103,13 @@ public class asc2db
 	public static void convertToDB(String inputFileName, String outputFileName)
 	{
 		File out = new File(outputFileName);
+/*
 		if (out.exists())
 		{
 			System.out.println("Output database file already exists! Please select another output file.");
 			System.exit(1);
 		}
-		
+		*/
 		try
 		{
 			String line;
