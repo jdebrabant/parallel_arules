@@ -35,6 +35,16 @@ package laur.dm.ar;
 import java.util.*;
 import java.io.IOException;
 
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.*;
+import org.apache.hadoop.mapreduce.lib.output.*;
+import org.apache.hadoop.util.*;
+
+import org.apache.hadoop.mapreduce.Reducer.Context;
+
 /**
 
    This class implements the FPgrowth algorithm 
@@ -50,6 +60,8 @@ import java.io.IOException;
 */
 public class FPgrowth extends FrequentItemsetsMiner
 {
+	org.apache.hadoop.mapreduce.Reducer.Context context; 
+	
   private static class FPTreeNode
   {
     // data
@@ -217,6 +229,8 @@ public class FPgrowth extends FrequentItemsetsMiner
 	    is_new.setWeight(header[i].count);
 	    is_new.setSupport((double)header[i].count / (double)num_rows);
 
+		  context.setStatus("running FP-growth for item " + i); 
+		  
 	    // write itemset to the cache
 	    try
 	      {
@@ -429,6 +443,14 @@ public class FPgrowth extends FrequentItemsetsMiner
 
   private int pass_num;
 
+	public int findFrequentItemsets(DBReader dbReader, 
+									DBCacheWriter cacheWriter,
+									double minSupport)
+	{
+		
+		return 0; 
+	}
+	
   /**
    * Find the frequent itemsets in a database
    *
@@ -441,7 +463,8 @@ public class FPgrowth extends FrequentItemsetsMiner
    */
   public int findFrequentItemsets(DBReader dbReader, 
 				  DBCacheWriter cacheWriter,
-				  double minSupport)
+				  double minSupport, 
+				org.apache.hadoop.mapreduce.Reducer.Context c)
   {
     // save the following into member fields
     db_reader = dbReader;
@@ -449,6 +472,8 @@ public class FPgrowth extends FrequentItemsetsMiner
     num_rows = dbReader.getNumRows();
     num_cols = (int)db_reader.getNumColumns();
     min_weight = (long)(num_rows * minSupport);
+	  
+	  context = c; 
 
     // check for user-requested abort
     checkAbort();

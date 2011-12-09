@@ -34,6 +34,15 @@ package laur.dm.ar;
 
 import laur.tools.*;
 
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.*;
+import org.apache.hadoop.mapreduce.lib.output.*;
+import org.apache.hadoop.util.*;
+import org.apache.hadoop.mapreduce.Reducer.Context; 
+
 /**
 
    This abstract class must be extended by the algorithms that will look
@@ -63,7 +72,6 @@ public abstract class FrequentItemsetsMiner extends MonitoredThread
   // this will keep the mining result (the number of passes)
   private int result;
 
-
   /**
    * Find the frequent itemsets in a database
    *
@@ -78,6 +86,10 @@ public abstract class FrequentItemsetsMiner extends MonitoredThread
 					   DBCacheWriter cacheWriter,
 					   double minSupport);
 
+	public abstract int findFrequentItemsets(DBReader dbReader, 
+											 DBCacheWriter cacheWriter,
+											 double minSupport, 
+											org.apache.hadoop.mapreduce.Reducer.Context context);
 
   /**
    * Sets the parameters for the mining algorithm. This method should

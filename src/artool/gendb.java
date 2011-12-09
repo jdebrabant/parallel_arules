@@ -34,6 +34,7 @@ import laur.dm.ar.*;
 
 import java.util.ArrayList;
 import java.io.File;
+import java.io.*; 
 
 /**
  * This program generates databases according to various input parameters.
@@ -172,7 +173,10 @@ class gendb
 	dbw.setColumnNames(col_names);
 	dbw.setDescription(db_name);
 	while (sdg.hasMoreTransactions())
+	{
+		//System.out.println("adding transaction"); 
 	  dbw.addRow(sdg.getNextTransaction());
+	}
 	dbw.close();
 	System.out.println(" done!");
 	System.exit(0);

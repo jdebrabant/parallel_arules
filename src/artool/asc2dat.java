@@ -39,7 +39,6 @@ public class asc2dat
 			is_transaction = false; 
 			while((line = in.readLine()) != null) // read through the file, line by line
 			{
-				System.out.println("here"); 
 				tokenizer = new StringTokenizer(line, " "); 
 				
 				token = tokenizer.nextToken(); 
