@@ -60,7 +60,6 @@ import org.apache.hadoop.mapreduce.Reducer.Context;
 */
 public class FPgrowth extends FrequentItemsetsMiner
 {
-	org.apache.hadoop.mapreduce.Reducer.Context context; 
 	
   private static class FPTreeNode
   {
@@ -229,7 +228,6 @@ public class FPgrowth extends FrequentItemsetsMiner
 	    is_new.setWeight(header[i].count);
 	    is_new.setSupport((double)header[i].count / (double)num_rows);
 
-		  context.setStatus("running FP-growth for item " + i); 
 		  
 	    // write itemset to the cache
 	    try
@@ -442,14 +440,6 @@ public class FPgrowth extends FrequentItemsetsMiner
   private int[] counts; // stores count of items starting from 1
 
   private int pass_num;
-
-	public int findFrequentItemsets(DBReader dbReader, 
-									DBCacheWriter cacheWriter,
-									double minSupport)
-	{
-		
-		return 0; 
-	}
 	
   /**
    * Find the frequent itemsets in a database
@@ -463,9 +453,8 @@ public class FPgrowth extends FrequentItemsetsMiner
    */
   public int findFrequentItemsets(DBReader dbReader, 
 				  DBCacheWriter cacheWriter,
-				  double minSupport, 
-				org.apache.hadoop.mapreduce.Reducer.Context c)
-  {
+				  double minSupport)
+	{
     // save the following into member fields
     db_reader = dbReader;
     cache_writer = cacheWriter;
@@ -473,7 +462,6 @@ public class FPgrowth extends FrequentItemsetsMiner
     num_cols = (int)db_reader.getNumColumns();
     min_weight = (long)(num_rows * minSupport);
 	  
-	  context = c; 
 
     // check for user-requested abort
     checkAbort();

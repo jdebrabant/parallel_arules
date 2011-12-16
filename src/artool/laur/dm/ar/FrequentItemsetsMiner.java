@@ -86,10 +86,6 @@ public abstract class FrequentItemsetsMiner extends MonitoredThread
 					   DBCacheWriter cacheWriter,
 					   double minSupport);
 
-	public abstract int findFrequentItemsets(DBReader dbReader, 
-											 DBCacheWriter cacheWriter,
-											 double minSupport, 
-											org.apache.hadoop.mapreduce.Reducer.Context context);
 
   /**
    * Sets the parameters for the mining algorithm. This method should

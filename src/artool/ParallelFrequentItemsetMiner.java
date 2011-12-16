@@ -31,9 +31,10 @@ public class ParallelFrequentItemsetMiner
 		try 
 		{
 			
-			
 			Configuration conf = new Configuration(); 
-			conf.setInt("mapreduce.task.timeout", 6000000); 
+			
+			conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
+			conf.setInt("mapred.task.timeout", 60000000); 
 			
 			Job job = new Job(conf);
 			
@@ -65,6 +66,8 @@ public class ParallelFrequentItemsetMiner
 			System.out.println(e.getMessage()); 
 		}
 	}
+	
+	
 }
 
 
