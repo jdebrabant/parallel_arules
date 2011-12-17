@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -r output
+~/bin/hadoop/bin/hadoop jar ~/Desktop/Dropbox/parallel_arules/src/artool/fim.jar input output
