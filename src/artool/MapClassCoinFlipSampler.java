@@ -21,7 +21,7 @@ public class MapClassCoinFlipSampler extends Mapper<LongWritable, Text, IntWrita
 	 * then read them from the Configuration. MR
 	 */
 	public static final int REDUCER_NUM = 64; 
-	public static final int DATASET_SIZE = 1000000
+	public static final int DATASET_SIZE = 1000000;
 	
 	@Override
 	public void map(LongWritable lineNum, Text value, Context context) throws IOException, InterruptedException

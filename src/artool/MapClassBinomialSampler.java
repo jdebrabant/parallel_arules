@@ -23,7 +23,7 @@ public class MapClassBinomialSampler extends Mapper<LongWritable, Text, IntWrita
 	 * then read them from the Configuration. MR
 	 */
 	public static final int REDUCER_NUM = 64; 
-	public static final int DATASET_SIZE = 1000000
+	public static final int DATASET_SIZE = 1000000;
 	
 	@Override
 	public void map(LongWritable lineNum, Text value, Context context) throws IOException, InterruptedException
@@ -40,7 +40,6 @@ public class MapClassBinomialSampler extends Mapper<LongWritable, Text, IntWrita
 				 * object containing the fields "sampleTimes"
 				 * and "value". MR
 				 */
-				f
 				for (int j=0; j < sampledTimes; j++)
 				{
 					context.write(new IntWritable(i), value);
