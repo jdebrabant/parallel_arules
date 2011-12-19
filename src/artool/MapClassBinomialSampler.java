@@ -11,7 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
 import org.apache.hadoop.util.*;
 
-import colt.jet.random.Binomial;
+import cern.jet.random.Binomial;
 
 import laur.dm.ar.*;
 import laur.tools.Timer;
