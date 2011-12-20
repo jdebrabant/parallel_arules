@@ -1,10 +1,13 @@
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.*;
-import org.apache.hadoop.mapreduce.lib.output.*;
-import org.apache.hadoop.util.*;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 public class ParallelFrequentItemsetMiner extends Configured implements Tool
 {
@@ -17,7 +20,7 @@ public class ParallelFrequentItemsetMiner extends Configured implements Tool
 			System.exit(1); 
 		}
 
-		int res = ToolRunner.run(new Configuration(), new ParallelFrequentItemsetMiner(), args);
+		int res = ToolRunner.run(new ParallelFrequentItemsetMiner(), args);
 
 		System.exit(res);
 	}
@@ -26,48 +29,38 @@ public class ParallelFrequentItemsetMiner extends Configured implements Tool
 	{
 		long job_start_time, job_end_time; 
 		long job_runtime; 
-		int ret;
 		
-		Configuration conf = getConf(); 
+		JobConf conf = new JobConf(getConf()); 
 			
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", 60000000); 
 
-		Job job = new Job(conf);
-
-		job.setJarByClass(ParallelFrequentItemsetMiner.class);
+		conf.setJarByClass(ParallelFrequentItemsetMiner.class);
 			
-		job.setMapOutputKeyClass(IntWritable.class); 
-		job.setMapOutputValueClass(Text.class); 
+		conf.setMapOutputKeyClass(IntWritable.class); 
+		conf.setMapOutputValueClass(Text.class); 
 			
-		job.setOutputKeyClass(Text.class); 
-		job.setOutputValueClass(IntWritable.class); 
+		conf.setOutputKeyClass(Text.class); 
+		conf.setOutputValueClass(IntWritable.class); 
 			
-		//job.setMapperClass(MapClass.class);
-		//job.setMapperClass(MapClassBinomialSampler.class);
-		job.setMapperClass(MapClassCoinFlipSampler.class);
-		job.setReducerClass(ReduceClass.class);
+		//conf.setMapperClass(MapClass.class);
+		//conf.setMapperClass(MapClassBinomialSampler.class);
+		conf.setMapperClass(MapClassCoinFlipSampler.class);
+		conf.setReducerClass(ReduceClass.class);
 			
-		FileInputFormat.setInputPaths(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileInputFormat.addInputPath(conf, new Path(args[0]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 			
 		job_start_time = System.currentTimeMillis(); 
-		job.waitForCompletion(true);
+		JobClient.runJob(conf);
 		job_end_time = System.currentTimeMillis(); 
 			
 		job_runtime = (job_end_time-job_start_time) / 1000; 
 			
 		System.out.println("total job runtime (seconds): " + job_runtime); 
 
-		if (job.isSuccessful())
-		{
-			ret = 0;
-		} 
-		else
-		{
-			ret = 1;
-		}
-		return ret;
+
+		return 0;
 	}
 	
 }
