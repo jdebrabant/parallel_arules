@@ -1,75 +1,76 @@
-
-import java.util.*; 
-import java.io.*; 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.Math;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.*;
-import org.apache.hadoop.mapreduce.lib.output.*;
-import org.apache.hadoop.util.*;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
 
 import laur.dm.ar.*;
 import laur.tools.Timer;
 
-public class ReduceClass extends Reducer<IntWritable, Text, Text, IntWritable>
+public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, Text, Text, IntWritable>
 {
 	@Override
-	public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
+	public void reduce(IntWritable key, Iterator<Text> values, 
+			OutputCollector<Text,IntWritable> output, 
+			Reporter reporter) throws IOException
 	{			
 		int count = 0; 
 		
-		try 
-		{
-			Path output_file_path = null; 
+		Path output_file_path = null; 
 			
-			String asc_file; 
-			String db_file; 
-			String cache_file; 
+		String asc_file; 
+		String db_file; 
+		String cache_file; 
 			
-			asc2db db_converter = new asc2db(); 
+		asc2db db_converter = new asc2db(); 
 			
-			String random_file; 
+		String random_file; 
 			
-			output_file_path = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getWorkOutputPath(context);
+		/* XXX this doesn't seem to be used. I'm commenting it out. MR */
+		// output_file_path = FileOutputFormat.getWorkOutputPath(context);
 
-			Random rand = new Random();
+		Random rand = new Random();
 			
-			random_file = new String((new Integer(rand.nextInt(100000))).toString()); 
+		random_file = new String((new Integer(rand.nextInt(100000))).toString()); 
 			
-			asc_file = random_file + ".asc"; 
+		asc_file = random_file + ".asc"; 
 			db_file = random_file + ".db"; 
 			cache_file = random_file + ".cache"; 
 			
-			//asc_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".asc");
-			//db_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".db");
-			//cache_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".cache");
+		//asc_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".asc");
+		//db_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".db");
+		//cache_file = org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.getUniqueFile(context, "temp" + random_file, ".cache");
 			
-			//convertToASC(values, asc_path.toString()); 
-			convertToASC(values, asc_file); 				
+		//convertToASC(values, asc_path.toString()); 
+		convertToASC(values, asc_file); 				
 			
-			try 
-			{
-				// will read temp.asc from disk and write a file in .db format to temp.db
-				db_converter.convertToDB(asc_file, db_file); 
-			}
-			catch(Exception e)
-			{
-				System.err.println("Error converting from asc to db"); 
-			}
-			
-			//mineDB(db_path.toString(), cache_path.toString(), 0, context); 
-			mineDB(db_file, cache_file, .2, context);
+		try 
+		{
+			// will read temp.asc from disk and write a file in .db format to temp.db
+			db_converter.convertToDB(asc_file, db_file); 
 		}
 		catch(Exception e)
 		{
-			System.out.println(e.getMessage()); 
+			System.err.println("Error converting from asc to db"); 
 		}
+			
+		//mineDB(db_path.toString(), cache_path.toString(), 0, context); 
+		mineDB(db_file, cache_file, .2, output);
 	}
 	
-	public static void convertToASC(Iterable<Text> values, String output_file)
+	public static void convertToASC(Iterator<Text> values, String output_file)
 	{
 		
 		BufferedWriter out; 
@@ -113,8 +114,9 @@ public class ReduceClass extends Reducer<IntWritable, Text, Text, IntWritable>
 			
 			out.write("BEGIN_DATA" + "\n"); 
 			
-			for(Text v : values)
+			while (values.hasNext()) 
 			{
+				Text v = values.next();
 				transaction = v.toString(); 
 				
 				out.write(transaction + "\n"); 
@@ -129,7 +131,7 @@ public class ReduceClass extends Reducer<IntWritable, Text, Text, IntWritable>
 		}
 	}
 	
-	public static void mineDB(String dbName, String cacheName, double min_support, Context context)
+	public static void mineDB(String dbName, String cacheName, double min_support, OutputCollector<Text,IntWritable> output)
 	{
 		int quiet = 0;
 		
@@ -196,7 +198,7 @@ public class ReduceClass extends Reducer<IntWritable, Text, Text, IntWritable>
 				System.out.println(itemName + "(" + (int) Math.ceil(FI.getSupport() * numRows) + ")");
 				
 				// write Key/Value pair to reducer output
-				context.write(new Text(itemName), new IntWritable((int)Math.ceil(FI.getSupport() * numRows))); 
+				output.collect(new Text(itemName), new IntWritable((int)Math.ceil(FI.getSupport() * numRows))); 
 			}
 		}
 		catch (Exception e)
