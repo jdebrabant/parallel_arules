@@ -1,36 +1,32 @@
+import java.io.IOException;
+import java.util.Random;
 
-import java.util.*; 
-import java.io.*; 
-import java.lang.Math;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
 
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.*;
-import org.apache.hadoop.mapreduce.lib.output.*;
-import org.apache.hadoop.util.*;
-
-import laur.dm.ar.*;
-import laur.tools.Timer;
-
-public class MapClass extends Mapper<LongWritable, Text, IntWritable, Text>
+public class MapClass extends MapReduceBase 
+	implements Mapper<LongWritable, Text, IntWritable, Text>
 {
+	/**
+	 * XXX It would be great if we could set these parameters at runtime and
+	 * then read them from the Configuration. MR
+	 */
 	public static final int REDUCER_NUM = 64; 
 	
 	@Override
-	public void map(LongWritable lineNum, Text value, Context context) throws IOException, InterruptedException
+	public void map(LongWritable lineNum, Text value,
+			OutputCollector<IntWritable, Text> output, 
+			Reporter reporter) throws IOException
 	{
 		Random rand = new Random();
 		
-		try
-		{
-			int key = (int)(rand.nextInt() % REDUCER_NUM);
-			context.write(new IntWritable(key), value);
-		}
-		catch(Exception e)
-		{
-			System.out.println(e.getMessage()); 
-		}
+			int key = rand.nextInt(REDUCER_NUM);
+			output.collect(new IntWritable(key), value);
 	}
 }
+
