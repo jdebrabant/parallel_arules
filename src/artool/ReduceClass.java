@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
@@ -78,35 +77,12 @@ public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, T
 		
 		String transaction; 
 		
-		StringTokenizer tokenizer; 
-		
-		String token; 
-		
 		int current, max = 100; 
 		
 		try 
 		{		
 			
-			 out = new BufferedWriter(new FileWriter(output_file)); 
-			
-			/*
-			 for(Text v : values)
-			 {
-				 transaction = v.toString(); 
-				 
-				 tokenizer = new StringTokenizer(transaction, " "); 
-			 
-				 while(tokenizer.hasMoreTokens())
-				 {
-					 token = tokenizer.nextToken(); 
-					 
-					 current = Integer.parseInt(token); 
-				 
-					 if(current > max)
-						 max = current; 
-				 }
-			 }
-			 */
+			out = new BufferedWriter(new FileWriter(output_file)); 
 			
 			for(int i = 1; i <= max; i++) // write the header
 			{
