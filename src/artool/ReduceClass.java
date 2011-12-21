@@ -1,7 +1,6 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
