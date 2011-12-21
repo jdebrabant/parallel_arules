@@ -7,8 +7,8 @@ import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -18,11 +18,13 @@ import org.apache.hadoop.mapred.Reporter;
 import laur.dm.ar.*;
 import laur.tools.Timer;
 
-public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, Text, Text, IntWritable>
+public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
+	public static final int REDUCER_NUM = 64; 
+
 	@Override
 	public void reduce(IntWritable key, Iterator<Text> values, 
-			OutputCollector<Text,IntWritable> output, 
+			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
 		int count = 0; 
@@ -130,7 +132,7 @@ public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, T
 		}
 	}
 	
-	public static void mineDB(String dbName, String cacheName, double min_support, OutputCollector<Text,IntWritable> output)
+	public static void mineDB(String dbName, String cacheName, double min_support, OutputCollector<Text,DoubleWritable> output)
 	{
 		int quiet = 0;
 		
@@ -194,10 +196,10 @@ public class ReduceClass extends MapReduceBase implements Reducer<IntWritable, T
 					itemName += (String)columnNames.get(item-1) + " ";
 					//System.out.print(itemName + " ");
 				}
-				System.out.println(itemName + "(" + (int) Math.ceil(FI.getSupport() * numRows) + ")");
+				System.out.println(itemName + "(" + FI.getSupport()  + ")");
 				
 				// write Key/Value pair to reducer output
-				output.collect(new Text(itemName), new IntWritable((int)Math.ceil(FI.getSupport() * numRows))); 
+				output.collect(new Text(itemName), new DoubleWritable(FI.getSupport())); 
 			}
 		}
 		catch (Exception e)

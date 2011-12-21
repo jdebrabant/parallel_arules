@@ -1,5 +1,6 @@
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -41,11 +42,11 @@ public class ParallelFrequentItemsetMiner extends Configured implements Tool
 		conf.setMapOutputValueClass(Text.class); 
 			
 		conf.setOutputKeyClass(Text.class); 
-		conf.setOutputValueClass(IntWritable.class); 
+		conf.setOutputValueClass(DoubleWritable.class); 
 			
-		//conf.setMapperClass(MapClass.class);
+		conf.setMapperClass(MapClass.class);
 		//conf.setMapperClass(MapClassBinomialSampler.class);
-		conf.setMapperClass(MapClassCoinFlipSampler.class);
+		//conf.setMapperClass(MapClassCoinFlipSampler.class);
 		conf.setReducerClass(ReduceClass.class);
 			
 		FileInputFormat.addInputPath(conf, new Path(args[0]));
