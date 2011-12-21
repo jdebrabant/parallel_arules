@@ -12,21 +12,22 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
 public class AggregateReducer extends MapReduceBase 
-	implements Reducer<Text, DoubleWritable, Text, DoubleWritable>
+	implements Reducer<Text, Text, Text, DoubleWritable>
 {
 	public static final int REDUCER_NUM = 64; 
 	public static final int REQUIRED_NUM = REDUCER_NUM / 2 + 1;
 	public static final double EPSILON = 0.02;
 
 	@Override
-	public void reduce(Text itemset, Iterator<DoubleWritable> values, 
+	public void reduce(Text itemset, Iterator<Text> values, 
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{
 		ArrayList<Double> valuesArrList = new ArrayList<Double>();
 		while (values.hasNext()) 
 		{
-			valuesArrList.add((values.next()).get());
+			String valueString = (values.next()).toString();
+			valuesArrList.add(Double.parseDouble(valueString));
 		}
 		/**
 		 * Only consider the itemset as "global frequent" if it
@@ -35,7 +36,8 @@ public class AggregateReducer extends MapReduceBase
 		 */
 		if (valuesArrList.size() >= REQUIRED_NUM)
 		{
-			Double[] valuesArr = (Double[]) valuesArrList.toArray();
+			Double[] valuesArr = new Double[valuesArrList.size()];
+			valuesArrList.toArray(valuesArr);
 			Arrays.sort(valuesArr);
 
 			/**
