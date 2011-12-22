@@ -1,0 +1,485 @@
+<HTML>
+<HEAD>
+<TITLE>The LUCS-KDD Implementation of the FP-growth algorithm</TITLE>
+</HEAD><BODY BGCOLOR="white">
+<CENTER><TABLE BORDER = 0 cellpadding = 10 WIDTH="100%">
+<TR><TD BGCOLOR = BB0000>
+<CENTER><TABLE BORDER = 0 cellpadding = 10 WIDTH="90%">
+<TR><TD BGCOLOR = 006699>
+<FONT COLOR = "white">
+<CENTER>
+<H1>THE LUCS-KDD IMPLEMENTATIONS OF THE FP-GROWTH ALGORITHM</H1>
+<HR WIDTH=<50%">
+<BR></CENTER>
+<TABLE ALIGN=right BGCOLOR="white" BORDER=1 CELLPADDING=5>
+<TR><TD>
+<img src="../../../GifFolder/logo115.gif"
+	alt="Liverpool University">
+</TD></TABLE>
+<P><B><I>Frans Coenen<I></B></P>
+<P><B>Department of Computer Science</B></P>
+<P><B>The University of Liverpool</B></P>
+<P>Thursday 5th February 2003</P>
+</FONT></TD>
+</TABLE></CENTER>
+</TD></TABLE>
+</CENTER>
+
+<P><B>DISCLAIMER!</B> The following description of the FP-growth algorithm 
+(Han et al. 2000) is that implemented by the author of this WWW page, i.e. it 
+is not identical to that first produced by Jiawei Han, Jian Pet, Yiwen Yin and 
+Runying Mao, but certainly displays all the "salient" features of the FP-growth 
+algorithm.</P> 
+
+<BR>
+<h2>CONTENTS</h2>
+<table BORDER=0 CELLPADDING=0 WIDTH=100%>
+
+<tr><td WIDTH="48%">
+<DL>
+<DT>1. <A HREF = "#introduction">Introduction</A>.</DT>
+<DT>2. <A HREF = "#fp-tree">The FP-tree</A>.</DT>
+<DT>3. <A HREF = "#fp-growth">The FP-growth algorithm</A>.</DT>
+<DT>4. <A HREF = "#note">Note on the LUCS-KDD implementation</A>.</DT>
+<DT>5. <A HREF = "#critique">Critique</A>.</DT>
+<DT>6. <A HREF = "#downloading">Downloading the software</A>.</DT>
+<DL>
+</td><td><pre> </pre></td><td>
+<DL>
+<DL>
+<DT>6.1. <A HREF = "#compiling">Compiling</A>.</DT>
+<DT>6.2. <A HREF = "#documentation">Documentation</A>.</DT>
+</DL>
+<DT>7. <A HREF = "#running">Running the software</A>.</DT>
+<DT>8. <A HREF =" #conclusions">Conclusions</A>.</DT>
+</dl>
+</td></table>
+
+<br><hr><br>
+<a NAME = "introduction">
+<table BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<tr><td><h2><font color =" white">1. INTRODUCTION</font></h2></td>
+</table><BR>
+
+<P>The popular FP-growth Association Rule Mining (ARM) algorirthm (Han et al. 
+2000) is applied to a particular kind of set enumerationj tree, the FP-tree,
+alsp developped by Han et al. Both the FP-tree and the FP-growth algorithm are
+described in the following two sections. A short critique is also provided in
+Section 3.</P> 
+
+<P>The essential difference between the original FP-growth algorithm and the
+LUCS-KDD (Java) implementation is that a second tree structure, the T-tree
+(developped by Frans Coenen, Paul Leng and Graham Goulbourne) is used to store
+the discovered frequent itemsets and subsequently generate the desired ARs.</P>
+
+<BR>
+<HR>
+<BR>
+<A NAME = "fp-tree"> 
+<TABLE BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<TR><TD><H2><font color = "white">2. THE FP-TREE</font></H2></TD>
+</TABLE>
+
+<P>A popular "preprocessing" tree structure is the FP-tree proposed by Han et 
+al. (2000). The FP-tree stores a single item (attribute) at each node, and 
+includes additional links to facilitate 
+processing. These links start from a <I>header table</I> and link together 
+all nodes in the FP-tree which store the same "label", i.e. item.</P> 
+
+<P>To illustrate the method, considering the simple data set:</P>
+<CENTER>
+<TABLE BORDER=1>
+<TR><TD><TT>{1, 3, 4}</TT></TD>
+<TR><TD><TT>{2, 4, 5}</TT></TD>
+<TR><TD><TT>{2, 4, 6}</TT></TD>
+</TABLE>
+</CENTER>
+ 
+<P>The construction process begins with an initial pass to count support for 
+the single items. Those that fail to meet the support threshold are eliminated, 
+and the others ordered by decreasing frequency. For our illustration we will 
+assume that all 1-itemsets are adequately supported, 
+so the ordering will be <TT>{4,2,1,3,5,6}</TT>. We then pass through the 
+dataset a second time and produce an initial FP-tree. We commence by reading 
+the first record in the dataset and place this in the FP-tree 
+(Figure 1(a) --- note the links from the header table). We then 
+add the second record; the first element of this is common with an existing 
+node and so we add the new node to the FP-tree structure as shown in 
+Figure 1(b). We then add the last record 
+(Figure 1(c)) to complete the initial FP-tree.</P>
+
+<CENTER>
+<IMG
+	SRC = "fpTree.gif"
+	BORDER=0
+	ALT = "FP TREE">
+<P><B>Figure 1:</B> <I>Example FP tree</I></P>
+</CENTER>	
+
+<BR>
+<HR>
+<BR>
+<A NAME = "fp-growth"> 
+<TABLE BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<TR><TD><H2><font color = "white">3. THE FP-GROWTH ALGORITHM</font></H2></TD>
+</TABLE>
+
+<P>The algorithm, FP-growth, for mining the FP-tree structure is a recursive 
+procedure during which many sub FP-trees and header tables are created. The 
+process commences by examining each item in the header table, starting with 
+the least frequent. For each entry the support value for the item is produced 
+by following the links connecting all occurrences of the current item in the 
+FP-tree. If the item is adequately supported, then for each leaf node 
+a set of <I>ancestor labels</I> is produced (stored in a <I>prefix tree</I>), 
+each of which has a support equivalent to the sum of the leaf node items from 
+which
+it is generated. If the set of ancestor labels is not <TT>null</TT>, a new tree 
+is generated with the set of ancestor labels as the dataset, and the process 
+repeated. In our implementation all frequent itemsets thus discovered were 
+placed in a T-tree, thus providing fast access during the final stage of the 
+ARM process, while at the same time providing for the deletion of FP-subtrees 
+and tables created "on route" as the FP-growth algorithm progressed.</P> 
+
+<P>For example in Figure 1(c) we would start with attribute <TT>6</TT>. This 
+has a support of 1, and assuming this is above the required suppoprt threshold, 
+this would be identified as a frequent set. There are two ancester labels so a 
+new FP-tree is created (Figure 2(a)) using the ancestor labels as the input set 
+/bin/sh: -c: line 1: syntax error near unexpected token `('
+/bin/sh: -c: line 1: `new FP-tree is created (Figure 2(a)) using the ancestor labels as the input set '
+
+(note that the support values for the label are equivalent to the leaf node).
+FP growth is applied again and the frequent sets <TT>{2,6}</TT> discovered.
+There are still ancestor nodes so another tree is produced (Figure 2(b)) and 
+the process is continued until there are no more ancestor nodes 
+(Figure 2(c)).</P>
+
+<CENTER>
+<IMG
+	SRC = "fpGrowth.gif"
+	BORDER=0
+	ALT = "FP GROWRG">
+<P><B>Figure 2:</B> <I>FP growth algorithm</I></P>
+</CENTER>
+
+
+<BR>
+<HR>
+<BR>
+<A NAME = "note"> 
+<TABLE BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<TR><TD><H2><font color = "white">4. NOTE ON THE LUCS-KDD IMPLEMENTATION</font></H2></TD>
+</TABLE>
+
+<P>The LUCS-KDD implementation of FP growth reorders and prunes the input data.
+Reorders so that the most common single attributes appear first, and pruned so
+that unsupported 1-itemsets are not included. The effect of this reordering and
+pruning is to make the running of the code much more computationally efficient
+(an advantage appropriate to all tree based ARM algorithms). Thus given an input
+set of the form:</P>
+
+<PRE>
+{1 3 4}
+{2 4 5}
+{2 4 6}
+</PRE>
+
+<P>This would be reordered to give:</P>
+
+<PRE>
+{4 1 3}
+{4 2 5}
+{4 2 6}
+</PRE>
+
+<P>However, for the code to operate correctly itemset attributes must be
+numbered sequentially. Thus some renumbering must take place:</P>
+
+<PRE>
+4 becomes 1
+2 becomes (stays at) 2
+1 becomes 3
+3 becomes 5
+5 becomes (stays at) 5
+6 becomes (stays at) 6
+</PRE>
+
+<P>The input data now looks like this:</P>
+
+<PRE>
+{1 3 4}
+{1 2 5}
+{1 2 6}
+</PRE>
+
+<P>Running the code produces a tree of the form:
+
+<PRE>
+(1) 1:3 (ref to null)
+(1.1) 2:2 (ref to null)
+(1.1.1) 5:1 (ref to null)
+(1.1.2) 6:1 (ref to null)
+(1.2) 3:1 (ref to null)
+(1.2.1) 4:1 (ref to null)
+</PRE>
+
+<P>Where given <TT>X:Y</TT>, <TT>X</TT> is the attribute number and <TT>Y</TT>
+is the associated support. Reordering and pruning can be switched off by
+removing (commenting out) the lines:<P>
+
+<PRE>
+newFPtree.idInputDataOrdering();
+newFPtree.recastInputDataAndPruneUnsupportedAtts(); 
+newFPtree.setNumOneItemSets();
+</PRE>
+
+<P>From the <TT>FPgrowthApp.java</TT> class in which case this would give
+an FP tree of the form:</P>
+
+<PRE>
+(1) 1:1 (ref to null)
+(1.1) 3:1 (ref to null)
+(1.1.1) 4:1 (ref to null)
+(2) 2:2 (ref to null)
+(2.1) 4:2 (ref to 4:1)
+(2.1.1) 5:1 (ref to null)
+(2.1.2) 6:1 (ref to null)
+</PRE>
+
+<P>Note that this unordered tree contains more nodes than the ordered tree.</P>
+
+<BR>
+<HR>
+<BR>
+<A NAME = "critique"> 
+<TABLE BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<TR><TD><H2><font color = "white">5. CRITIQUE</font></H2></TD>
+</TABLE>
+
+<P>The advantages offered by algorithms such as FP-Growth (Han et al. 2000) are 
+partly gained from the ordering process, which reduces the overall size of the 
+input dataset (because unsupported single items are eliminated), and reduces 
+processing time by allowing the most common items to be processed most
+efficiently. The first advantage can also be realised by other ARM algorithms;
+anything that reduces the overall size of the input dataset has a positive 
+effect on mining efficiency. However, the advantage will only be significant 
+given sparse datasets and/or high support thresholds, where many
+1-itemsets are likely to be unsupported and therefore can be eliminated from 
+the input dataset.</P> 
+
+<P>It should also be noteed here that reordering of attributes in datasets according to the support counts for 
+single items has a general benefit with respect to the computational 
+efficiency of set enumeration trees in general.</P> 
+<BR>
+<HR>
+<BR>
+
+
+<a NAME ="downloading">
+<table BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<tr><td><h2><font color =" white">6. DOWNLOADING THE SOFTWARE</font></h2></td>
+</table><BR>
+
+<P>The LUCS KDD FP-growth software comprises four Java source files. These are 
+provided from this WWW page together with an application classes. The source 
+files are as follows:</P>
+
+AssocRuleMining.java  FPtree.java            TtreeNode.java
+FPgrowthApp.java      TotalSupportTree.java
+
+
+<OL>
+<LI><A HREF = "AssocRuleMining.java"><TT>AssocRuleMining.java</TT></A>:
+Set of general ARM utility methods to allow: (i) data input and input
+error checking, (ii) data preprocessing, (iii) manipulation of records (e.g.
+operations such as subset, member, union etc.) and (iv) data and parameter 
+output.
+<LI><A HREF = "FPtree.java"><TT>FPtree.java</TT></A>: The FP growth 
+algorithm.
+<LI><A HREF = "TotalSupportTree.java"><TT>TotalSupportTree.java</TT></A>:
+Methods to generate ans manipulate the "Total support" tree data structure 
+(T-tree).
+<LI><A HREF = "TtreeNode.java"><TT>TtreeNode.java</TT></A>: Descrition of a
+node in the T-tree.
+</OL>
+
+<P>The <TT>TtreeNode</TT> class is separate to the remaining classes which are
+arranged in a class hierarchy of the form presented in Figure 3.</P>
+
+<CENTER>
+<TABLE BORDER=1><TR><TD>
+<TABLE BORDER=1 CELLPADDING=10><TR><TD>
+<PRE>
+ AssocRuleMining
+	|
+ TotalSupportTree 
+	|
+     FPtree
+</PRE>
+</TD></TABLE>
+</TD></TABLE>
+<P><B>Figure 3</B>: <I>Class Hierarchy</I></P>
+</CENTER>
+
+<P>The Apriori-TFPC FP-growth application class included here is as follows:</P>
+
+<OL>
+<LI><A HREF = "FPgrowthApp.java"><TT>FPgrowthApp.java</TT></A>: FP growth
+application demonstration class.
+</OL>
+
+<P>There is also a "tar ball" <A HREF = "fpGrowth.tgz">fpGrowth.tgz</A>
+that can be downloaded that includes all of the above source and application
+class files. It can be unpacked using <TT>tar -zxf fpGrowth.tgz</TT>.</P>
+
+<BR>
+<a NAME = "compiling">
+<H3>6.1. Compiling</H3>
+<P>The LUCS-KDD FP-growth software has been implemented in Java using the 
+Java2 SDK(Software Development Kit) Version 1.4.0, which should therefore make 
+it highly portable. The code does not require any special packages and thus can 
+be compiled using a standard Java compiler:</p>
+
+<pre>
+javac *.java
+</pre>
+
+<BR>
+<a NAME = "documentation">
+<H3>6.2. Documentation</H3>
+
+<P>The code can be documented using <I>Java Doc</I>. First create a directory
+<TT>Documentation</TT> in which to place the resulting HTML pages and then 
+type:</P>
+
+<PRE>
+javadoc -d Documentation/ *.java
+</PRE>
+
+<P>This will produce a hierarchy of WWW pages contained in the <TT>Document</TT>
+directory.</P>
+
+<br><hr><br>
+<a NAME ="running">
+<table BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<tr><td><h2><font color =" white">7. RUNNING THE SOFTWARE</font></h2></td>
+</table><BR>
+
+<p>When compiled the software can be invoked in the normal manner using the 
+Java interpreter:</p>
+
+<pre>
+java APPLICATION_CLASS_FILE_NAME
+</pre>
+
+<p>If you are planning to process a very large data set it is a good idea to 
+grab some extra memory. For example:</p>
+
+<pre>
+java -Xms600m -Xmx600m APPLICATION_CLASS_FILE_NAME
+</pre>
+
+<P>The input to the software, in all cases is a (space separated)
+<I>binary valued</I> data set <TT>R</TT>. The set <TT>R</TT>
+comprises a set of <TT>N</TT> records such that each record (<TT>r</TT>),
+in turn, comprises a set of <I>attributes</I>. Thus:</P>
+
+<PRE>
+R  = {r | r = subset A}
+</PRE>
+
+<P>Where <TT>A</TT> is the set of available attributes. The value <TT>D</TT> is
+then defined as:
+
+<PRE>
+D = |A|
+</PRE>
+
+<P>We then say that a particular data set has <TT>D</TT> <I>columns</I> and
+<TT>N</TT> <I>rows</I>. A small example data sets might be as follows:</P>
+
+<PRE>
+1 2 3 6
+1 4 5 7
+1 3 4 6
+1 2 6
+1 2 3 4 5 7
+</PRE>
+
+<P>where, in this case, <TT>A = {1, 2, 3, 4, 5, 6, 7}</TT>. Note that 
+attribute numbers are ordered sequentially commencing with the
+number 1 (the value 0 has a special meaning). The input
+file is included using a <TT>-F</TT> flag.</P>
+
+<P>The program assumes support and confidence default threshold values of 20% 
+and 80% respectively. However the user may enter their own thresholds using the 
+<TT>-S</TT> and <TT>-C</TT> flags. Thresholds are expressed as percentages.</P>
+
+<P>Some example invocations, using a discretized/ normalised Pima Indians 
+data set (also <A HREF = "pima.D38.N768.C2.num">available</A> from this
+site) and each of the three application classes provided by this WWW site, are
+given below:</P>
+
+<PRE>
+java FPgrowthApp -Fpima.D38.N768.C2.num
+java FPgrowthApp -Fpima.D38.N768.C2.num -S2.5
+java FPgrowthApp -Fpima.D38.N768.C2.num -S1 -C90
+</PRE>
+
+<P>(note that the ordering of flags is not significant). The output from each
+application is a set of ARs (ordered according to confidence) plus some
+diagnostic information (run time, number of rules generated etc.). The example
+application also outputs the FP-trees generated. By editting the application
+source file (<TT>FPgrowthApp.java</TT>) these outputs can be removed or commented out. </P>
+
+<br><hr><br>
+<A name = "conclusions">
+<table BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<tr><td><h2><font color =" white">8. CONCLUSIONS</font></h2></td>
+</table> <BR>
+
+<P>The FP-growth ARM algorithm described here has been use successfully by the 
+LUCS-KDD research group to contrast and compare a variety of ARM algorithms and 
+techniques. The software is available for free, however the author 
+would appreciate appropriate acknowledgement. The following reference format 
+for referring to the LUCS-KDD FP-growth implementation available here
+is suggested:</P>
+
+<OL>
+<LI>Coenen, F. (2003), <I>The LUCS-KDD
+FP-growth Association Rule Mining Algorithm</I>,
+http://www.cxc.liv.ac.uk/~frans/KDD/Software/FPgrowth/fpGrowth.html,
+Department of Computer Science, The University of Liverpool, UK.
+</OL>
+
+<P>Should you discover any "bugs" or other problems within the software (or 
+this documentation), do not hesitate to contact the author.</P>
+
+
+<BR><HR><BR>
+<A NAME = "refs"> 
+<TABLE BORDER-=0 WIDTH="100%" CELLPADDING=5 BGCOLOR="006699">
+<TR><TD><H2><font color = "white">REFERENCES</font></H2></TD>
+</TABLE>
+
+<DL>
+<DT>Coenen, F., Goulbourne, G. and Leng, P., (2003).</DT>
+<DD><I>Tree Structures for Mining association Rules.</I> 
+Journal of Data Mining and Knowledge Discovery, Vol 8, No 1, pp25-51.</DD>
+
+<DT>Goulbourne, G., Coenen, F. and Leng, P. (2000).</DT>
+<DD><I>Algorithms for Computing Association Rules Using a Partial-Support Tree.</I>
+Journal of Knowledge-Based Systems, Vol (13), pp141-149.</DD>
+
+<DT>Han, J., Pei, J. and Yiwen, Y. (2000).</DT>
+<DD><I>Mining Frequent Patterns Without Candidate Generation.</I>
+Proceedings ACM-SIGMOD International Conference on 
+Management of Data, ACM Press, pp1-12.</DD>
+</DL>
+
+<br>
+<br>
+<hr>
+<P>Return to <A HREF = "../kdd.html">KDD top level page</A>.</P>
+
+<BODY>
+</HTML>

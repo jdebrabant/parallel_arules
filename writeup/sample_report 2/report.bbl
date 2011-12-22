@@ -1,0 +1,48 @@
+\begin{thebibliography}{1}
+
+\bibitem{Yang2010}
+{MapReduce as a programming model for association rules algorithm on Hadoop}.
+\newblock In {\em The 3rd International Conference on Information Sciences and
+  Interaction Sciences}, pages 99--102. IEEE, June 2010.
+
+\bibitem{Li2011}
+{The Strategy of Mining Association Rule Based on Cloud Computing}.
+\newblock In {\em 2011 International Conference on Business Computing and
+  Global Informatization}, pages 475--478. IEEE, July 2011.
+
+\bibitem{Agrawal1996}
+R.~Agrawal and J.C. Shafer.
+\newblock {Parallel mining of association rules}.
+\newblock {\em IEEE Transactions on Knowledge and Data Engineering},
+  8(6):962--969, 1996.
+
+\bibitem{Agrawal1}
+R.~Agrawal and Ramakrishnan Srikant.
+\newblock {Fast Algorithms for Mining Association Rules}.
+\newblock {\em VLDB '94}, 1994.
+
+\bibitem{Dean2008}
+Jeffrey Dean and Sanjay Ghemawat.
+\newblock {MapReduce: simplified data processing on large clusters}.
+\newblock {\em Communications of the ACM}, 51(1):107, January 2008.
+
+\bibitem{Han}
+Jiawei Han, Jian Pei, and Yiwen Yin.
+\newblock Mining frequent patterns without candidate generation.
+\newblock In {\em Proceedings of the 2000 ACM SIGMOD international conference
+  on Management of data}, SIGMOD '00, pages 1--12, New York, NY, USA, 2000.
+  ACM.
+
+\bibitem{Li2008}
+Haoyuan Li, Yi~Wang, Dong Zhang, Ming Zhang, and Edward~Y. Chang.
+\newblock {Pfp: Parallel fp-growth for Query Recommendation}.
+\newblock In {\em Proceedings of the 2008 ACM conference on Recommender systems
+  - RecSys '08}, page 107, New York, New York, USA, October 2008. ACM Press.
+
+\bibitem{Zaki1997}
+Mohammed Zaki, Srinivasan Parthasarathy, Mitsunori Ogihara, and Wei Li.
+\newblock Parallel algorithms for discovery of association rules.
+\newblock {\em Data Mining and Knowledge Discovery}, 1:343--373, 1997.
+\newblock 10.1023/A:1009773317876.
+
+\end{thebibliography}
