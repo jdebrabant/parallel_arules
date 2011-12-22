@@ -19,6 +19,8 @@
  |
  +-- TotalSupportTree	 */ 
 
+package fim.fpgrowth; 
+
 /* Java packages */
 import java.io.*;
 import java.util.*;

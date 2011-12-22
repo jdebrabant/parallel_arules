@@ -13,7 +13,7 @@
 /*                                                                            */ 
 /* -------------------------------------------------------------------------- */
 
-
+package fim.fpgrowth; 
 
 /* To compile: javac.exe AssocRuleMining.java */
 

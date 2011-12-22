@@ -10,6 +10,8 @@
 	-O output file name (defaults to frequent_itemsets.txt)
 *********************************************************************************/
 
+package fim.fpgrowth; 
+
 import java.io.*;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.io.Text;
