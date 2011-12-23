@@ -20,6 +20,8 @@
  |
  +-- FPtree		*/ 
 
+package fim.fpgrowth; 
+
 import java.io.*;
 import java.util.*;
 

@@ -12,6 +12,8 @@
 /*                                                                        */ 
 /* ---------------------------------------------------------------------- */
 
+package fim.fpgrowth; 
+
 import java.io.*;
 
 public class FPgrowthApp {
