@@ -61,7 +61,6 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			
 			// mine frequent itemsets
 			FPgrowth.mineFrequentItemsets(args, false, output);
-			
 		}
 		catch(Exception e)
 		{

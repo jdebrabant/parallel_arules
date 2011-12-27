@@ -648,7 +648,7 @@ public class Itemset
 
     for (int i = 0; i < size; i++)
       s += set[i] + " ";
-    s += "(" + support + ")";
+    //s += "(" + support + ")";
 
     return s;
   }
