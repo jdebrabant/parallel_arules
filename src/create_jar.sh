@@ -1,4 +1,4 @@
 #!/bin/bash 
 
-javac -cp $CLASSPATH:lib/colt.jar *.java
-jar cvfm parallel.jar jar-manifest *.class
+make 
+jar cvfm parallel.jar jar-manifest *.class fim/fpgrowth/*.class

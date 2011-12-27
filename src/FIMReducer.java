@@ -18,7 +18,7 @@ import fim.fpgrowth.*;
 
 public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
-	public static final int REDUCER_NUM = 64;
+	public static final int REDUCER_NUM = 2;
 	
 	public static final int MIN_SUPPORT_PERCENT = 20; 
 
@@ -54,6 +54,8 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 				
 				dat_out.write(transaction + "\n"); 
 			}
+			
+			dat_out.close(); 
 			
 			// create command line arguments to pass to frequent itemset miner
 			args[0] = new String("-F" + random_file);			// arg for input file
