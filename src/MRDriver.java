@@ -54,7 +54,6 @@ public class MRDriver extends Configured implements Tool
 		long job_start_time, job_end_time; 
 		long job_runtime; 
 		
-		
 		/************************ Job 1 (local FIM) Configuration ************************/
 		
 		JobConf conf = new JobConf(getConf()); 

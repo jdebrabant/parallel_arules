@@ -18,9 +18,9 @@ import fim.fpgrowth.*;
 
 public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
-	public static final int REDUCER_NUM = 2;
+	public static final int REDUCER_NUM = 1;
 	
-	public static final int MIN_SUPPORT_PERCENT = 20; 
+	public static final int MIN_SUPPORT_PERCENT = 0; 
 
 	@Override
 	public void reduce(IntWritable key, Iterator<Text> values, 

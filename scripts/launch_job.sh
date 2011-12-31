@@ -4,7 +4,6 @@ elastic-mapreduce \
   --create \
   --name "test" \
   --jar s3n://kdd12/parallel.jar \
-  --arg 1\
   --arg s3n://kdd12/input/ \
   --arg s3n://kdd12/output/output2/ \
   --arg s3n://kdd12/output/output1/ \

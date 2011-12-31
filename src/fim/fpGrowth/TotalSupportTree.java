@@ -422,7 +422,8 @@ public class TotalSupportTree extends AssocRuleMining {
 					if (startTtreeRef[index].support >= minSupport) 
 					{
 						String itemSetSofar = new Short(reconvertItem(index)).toString();
-						//out.write("{" + itemSetSofar + "} = " + startTtreeRef[index].support + "\n");
+						System.out.println("{" + itemSetSofar + "} = " + startTtreeRef[index].support + "\n");
+						
 						
 						output.collect(new Text(itemSetSofar), new DoubleWritable(startTtreeRef[index].support)); 
 
