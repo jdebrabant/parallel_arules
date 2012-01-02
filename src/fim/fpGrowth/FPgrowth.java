@@ -55,7 +55,6 @@ public class FPgrowth
 		end_time = System.currentTimeMillis();
 		total_time = newFPtree.twoDecPlaces((end_time - start_time) / 1000.0); 
 		//System.out.println("done (" + total_time + " seconds)");
-
 		
 		// Reorder and prune input data according to frequency of single attributes	
 		System.out.print("pruning items with low support..."); 
@@ -105,6 +104,7 @@ public class FPgrowth
 				System.out.println("ERROR: OutputCollector cannot be null in distributed mode"); 
 				System.exit(1); 
 			}
+			//newFPtree.outputFrequentSets();
 			newFPtree.emitFrequentSets(output); 
 		}
 	}

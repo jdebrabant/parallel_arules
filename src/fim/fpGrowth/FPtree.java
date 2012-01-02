@@ -408,7 +408,7 @@ public class FPtree extends TotalSupportTree {
     	startMining(headerTable,null);
 		
 		// Generate ARs
-		generateARs();
+		//generateARs();
 	}
     
     /* START MINING */

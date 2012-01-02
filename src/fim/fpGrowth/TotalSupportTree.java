@@ -413,6 +413,7 @@ public class TotalSupportTree extends AssocRuleMining {
 	{
 		try 
 		{
+			String itemset; 
 			int number = 1;
 			
 			for (short index=1; index <= numOneItemSets; index++) 
@@ -422,12 +423,12 @@ public class TotalSupportTree extends AssocRuleMining {
 					if (startTtreeRef[index].support >= minSupport) 
 					{
 						String itemSetSofar = new Short(reconvertItem(index)).toString();
-						System.out.println("{" + itemSetSofar + "} = " + startTtreeRef[index].support + "\n");
+						//System.out.println("{" + itemSetSofar + "} = " + startTtreeRef[index].support + "\n");
 						
-						
-						output.collect(new Text(itemSetSofar), new DoubleWritable(startTtreeRef[index].support)); 
+						itemset = new String(itemSetSofar); 
+						output.collect(new Text(itemset), new DoubleWritable(startTtreeRef[index].support)); 
 
-						number = outputFrequentSets(number+1,itemSetSofar, index,startTtreeRef[index].childRef);
+						number = emitFrequentSets(output, number+1,itemSetSofar, index,startTtreeRef[index].childRef);
 					}
 				}
 			}
@@ -455,10 +456,10 @@ public class TotalSupportTree extends AssocRuleMining {
 					if (linkRef[index].support >= minSupport) 
 					{
 						String newItemSet = itemSetSofar + (reconvertItem(index));
-						//out.write("{" + newItemSet + "} = " + linkRef[index].support + "\n");
+						//System.out.write("{" + newItemSet + "} = " + linkRef[index].support + "\n");
 						output.collect(new Text(newItemSet), new DoubleWritable(linkRef[index].support)); 
 						
-						number = outputFrequentSets(number + 1,newItemSet, index, linkRef[index].childRef);
+						number = emitFrequentSets(output, number + 1,newItemSet, index, linkRef[index].childRef);
 					}
 				}
 			}

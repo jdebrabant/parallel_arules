@@ -98,7 +98,7 @@ public class MRDriver extends Configured implements Tool
 		
 		
 		/************************ Job 2 (aggregation) Configuration ************************/
-
+		
 		JobConf confAggr = new JobConf(getConf());
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
@@ -128,7 +128,7 @@ public class MRDriver extends Configured implements Tool
 			
 		System.out.println("aggregation runtime (seconds): " +
 				job_runtime); 
-
+		 
 		return 0;
 	}
 }

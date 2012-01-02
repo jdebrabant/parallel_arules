@@ -22,14 +22,14 @@ import java.io.*;
 import java.util.*;
 
 // Java GUI packages
-import javax.swing.*;
+//import javax.swing.*;
 
 /** Set of utillities to support various Association Rule Mining (ARM) 
  algorithms.
  @author Frans Coenen
  @version 1 February 2005 */
 
-public class AssocRuleMining extends JFrame {
+public class AssocRuleMining {
 	
     /* ------ FIELDS ------ */
 	
@@ -354,12 +354,14 @@ public class AssocRuleMining extends JFrame {
 	 @param counter the line number in the input file.
 	 @param str the current line from the input file. */
 	
-    protected void checkLine(int counter, String str) {
+    protected void checkLine(int counter, String str) 
+	{
 		
         for (int index=0;index <str.length();index++) {
             if (!Character.isDigit(str.charAt(index)) &&
-				!Character.isWhitespace(str.charAt(index))) {
-				JOptionPane.showMessageDialog(null,"FILE INPUT ERROR:\n" +
+				!Character.isWhitespace(str.charAt(index))) 
+			{
+				System.out.println("FILE INPUT ERROR:\n" +
 											  "charcater on line " + counter +
 											  " is not a digit or white space");
 				inputFormatOkFlag = false;
@@ -495,7 +497,7 @@ public class AssocRuleMining extends JFrame {
     protected boolean checkLineOrdering(int lineNum, short[] itemSet) {
         for (int index=0;index<itemSet.length-1;index++) {
 			if (itemSet[index] >= itemSet[index+1]) {
-				JOptionPane.showMessageDialog(null,"FILE FORMAT ERROR:\n" +
+				System.out.println("FILE FORMAT ERROR:\n" +
 											  "Attribute data in line " + lineNum +
 											  " not in numeric order");
 				return(false);
@@ -534,8 +536,7 @@ public class AssocRuleMining extends JFrame {
 			fileInput = new BufferedReader(file);
 	    }
 		catch(IOException ioException) {
-			JOptionPane.showMessageDialog(this,"Error Opening File",
-										  "Error: ",JOptionPane.ERROR_MESSAGE);
+			System.out.println("Error Opening File");
 			System.exit(1);
 	    }
 	}
@@ -550,8 +551,7 @@ public class AssocRuleMining extends JFrame {
 			fileInput = new BufferedReader(file);
 	    }
 		catch(IOException ioException) {
-			JOptionPane.showMessageDialog(this,"Error Opening File",
-										  "Error: ",JOptionPane.ERROR_MESSAGE);
+			System.out.println("Error Opening File");
 			System.exit(1);
 	    }
 	}
@@ -565,8 +565,7 @@ public class AssocRuleMining extends JFrame {
 				fileInput.close();
 			}
 			catch (IOException ioException) {
-				JOptionPane.showMessageDialog(this,"Error Closeing File",
-											  "Error: ",JOptionPane.ERROR_MESSAGE);
+				System.out.println("Error Closing File"); 
 				System.exit(1);
 			}
 	    }
