@@ -83,7 +83,7 @@ public class MRDriver extends Configured implements Tool
 			conf.setMapperClass(CoinFlipSamplerMapper.class);
 		}
 		
-		conf.setPartitionerClass(PARMPartitioner.class);
+		conf.setPartitionerClass(FIMPartitioner.class);
 
 		conf.setReducerClass(FIMReducer.class);
 			
