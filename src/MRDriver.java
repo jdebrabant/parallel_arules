@@ -66,7 +66,7 @@ public class MRDriver extends Configured implements Tool
 	{
 		long job_start_time, job_end_time; 
 		long job_runtime; 
-		double epsilon = Double.parseDouble(args[0]);
+		float epsilon = Float.parseFloat(args[0]);
 		double delta = Double.parseDouble(args[1]);
 		int minFreqPercent = Integer.parseInt(args[2]);
 		int d = Integer.parseInt(args[3]);
@@ -87,6 +87,7 @@ public class MRDriver extends Configured implements Tool
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
 		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
+		conf.setFloat("PARMM.epsilon", epsilon);
 			
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 

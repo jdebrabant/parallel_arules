@@ -6,6 +6,7 @@ import java.util.Iterator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
@@ -14,9 +15,19 @@ import org.apache.hadoop.mapred.Reporter;
 public class AggregateReducer extends MapReduceBase 
 	implements Reducer<Text, Text, Text, DoubleWritable>
 {
-	public static final int REDUCER_NUM = 64; 
-	public static final int REQUIRED_NUM = REDUCER_NUM / 2 + 1;
-	public static final double EPSILON = 0.02;
+	int reducersNum;
+	int requiredNum;
+	float epsilon;
+
+	@Override
+	public void configure(JobConf conf) 
+	{
+		reducersNum = conf.getInt("PARMM.reducersNum", 64);
+		requiredNum = reducersNum / 2 + 1;
+		epsilon = conf.getFloat("PARMM.epsilon", (float) 0.02);
+	}
+
+
 
 	@Override
 	public void reduce(Text itemset, Iterator<Text> values, 
@@ -32,9 +43,9 @@ public class AggregateReducer extends MapReduceBase
 		/**
 		 * Only consider the itemset as "global frequent" if it
 		 * appears among the "local frequent" itemsets at least
-		 * REQUIRED_NUM times.
+		 * requiredNum times.
 		 */
-		if (valuesArrList.size() >= REQUIRED_NUM)
+		if (valuesArrList.size() >= requiredNum)
 		{
 			Double[] valuesArr = new Double[valuesArrList.size()];
 			valuesArrList.toArray(valuesArr);
@@ -42,29 +53,29 @@ public class AggregateReducer extends MapReduceBase
 
 			/**
 			 * Compute the smallest frequency interval containing
-			 * REQUIRED_NUM estimates of the frequency of the
+			 * requiredNum estimates of the frequency of the
 			 * itemset. Use the center of this interval as global
 			 * estimate for the frequency. The confidence interval
-			 * is obtained by enlarging the above interva by EPSILON
+			 * is obtained by enlarging the above interva by epsilon
 			 * / 2 on both sides.
 			 *
 			 * XXX It seems to me that  it would actually be enough to
 			 * require that the interval contains REDUCER_NUM / 2 +
-			 * 1 estimates, independently on REQUIRED_NUM. MR
+			 * 1 estimates, independently on requiredNum. MR
 			 */
-			double minIntervalLength = valuesArr[REQUIRED_NUM - 1] - valuesArr[0];
+			double minIntervalLength = valuesArr[requiredNum - 1] - valuesArr[0];
 			double estimatedFreq = valuesArr[0] + minIntervalLength / 2;
-			double confIntervalLowBound = valuesArr[0] - EPSILON / 2;
-			double confIntervalUppBound = valuesArr[REQUIRED_NUM -1] + EPSILON / 2;
-			for (int i = 1; i < valuesArr.length - REQUIRED_NUM; i++)
+			double confIntervalLowBound = valuesArr[0] - epsilon / 2;
+			double confIntervalUppBound = valuesArr[requiredNum -1] + epsilon / 2;
+			for (int i = 1; i < valuesArr.length - requiredNum; i++)
 			{
-				double intervalLength = valuesArr[REQUIRED_NUM + i] - valuesArr[i];
+				double intervalLength = valuesArr[requiredNum + i] - valuesArr[i];
 				if (intervalLength < minIntervalLength) 
 				{
 					minIntervalLength = intervalLength;
 					estimatedFreq = valuesArr[i] + minIntervalLength / 2;
-					confIntervalLowBound = valuesArr[i] - EPSILON / 2;
-					confIntervalUppBound = valuesArr[REQUIRED_NUM + i] + EPSILON / 2;
+					confIntervalLowBound = valuesArr[i] - epsilon / 2;
+					confIntervalUppBound = valuesArr[requiredNum + i] + epsilon / 2;
 				}
 			}
 			
@@ -73,7 +84,7 @@ public class AggregateReducer extends MapReduceBase
 			 * for the confidence interval. MR
 			 */
 			output.collect(itemset, new DoubleWritable(estimatedFreq));
-		} // end if (valuesArrList.size() >= REQUIRED_NUM)
+		} // end if (valuesArrList.size() >= requiredNum)
 	}
 }
 
