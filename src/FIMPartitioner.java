@@ -3,7 +3,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Partitioner;
 
-public class PARMPartitioner implements Partitioner<IntWritable, Text> {
+public class FIMPartitioner implements Partitioner<IntWritable, Text> {
 	@Override
 	public void configure(JobConf job) {}
 
