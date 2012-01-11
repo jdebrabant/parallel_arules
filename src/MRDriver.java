@@ -17,17 +17,30 @@
  
 ***************************************************************************************************************************/
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Hashtable;
+
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
+import org.apache.hadoop.mapred.lib.InputSampler;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.KeyValueTextInputFormat;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -37,9 +50,9 @@ public class MRDriver extends Configured implements Tool
 	
 	public static void main(String args[]) throws Exception
 	{
-		if (args.length != 4)
+		if (args.length != 10)
 		{
-			System.out.println("usage: java MRDriver <mapper id> <path to input database> " + 
+			System.out.println("usage: java MRDriver <epsilon> <delta> <minFreqPercent> <d> <datasetSize> <nodes> <mapper id> <path to input database> " + 
 							   "<path to output local FIs> <path to output global FIs>");
 			System.exit(1); 
 		}
@@ -53,10 +66,27 @@ public class MRDriver extends Configured implements Tool
 	{
 		long job_start_time, job_end_time; 
 		long job_runtime; 
+		double epsilon = Double.parseDouble(args[0]);
+		double delta = Double.parseDouble(args[1]);
+		int minFreqPercent = Integer.parseInt(args[2]);
+		int d = Integer.parseInt(args[3]);
+		int datasetSize = Integer.parseInt(args[4]);
+		int nodes = Integer.parseInt(args[5]);
+
 		
 		/************************ Job 1 (local FIM) Configuration ************************/
 		
 		JobConf conf = new JobConf(getConf()); 
+
+		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.tasks.maximum", 10));
+		double phi = 2 + 4 * Math.log(delta) / numSamples - Math.sqrt(16 * Math.pow(Math.log(delta), 2) / numSamples + 8 * Math.log(delta) / numSamples + 3);
+		assert phi > 0.0 && phi < 1.0;
+		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
+		double freq = datasetSize / ((double) numSamples * sampleSize);
+
+		conf.setInt("PARMM.reducersNum", numSamples);
+		conf.setInt("PARMM.datasetSize", datasetSize);
+		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
 			
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
@@ -68,27 +98,78 @@ public class MRDriver extends Configured implements Tool
 			
 		conf.setOutputKeyClass(Text.class); 
 		conf.setOutputValueClass(DoubleWritable.class); 
+
+		FileInputFormat.addInputPath(conf, new Path(args[4]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[5]));
 		
 		// set the mapper classs based on command line option
-		if(args[0].equals("1"))
+		if(args[3].equals("1"))
 		{
-			conf.setMapperClass(PartitionMapper.class);
+			conf.setMapperClass(FIMMappers.PartitionMapper.class);
 		}
-		else if(args[0].equals("2"))
+		else if(args[3].equals("2"))
 		{
-			conf.setMapperClass(BinomialSamplerMapper.class);
+			conf.setMapperClass(FIMMappers.BinomialSamplerMapper.class);
 		}
-		else if(args[0].equals("3"))
+		else if(args[3].equals("3"))
 		{
-			conf.setMapperClass(CoinFlipSamplerMapper.class);
+			conf.setMapperClass(FIMMappers.CoinFlipSamplerMapper.class);
+		}
+		else if(args[3].equals("4"))
+		{
+			conf.setMapperClass(FIMMappers.InputSamplerMapper.class);
+
+			InputSampler.Sampler<LongWritable,Text> sampler = new
+				InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);
+			LongWritable[] samples = sampler.getSample(new TextInputFormat(), conf);
+
+			Collections.shuffle(Arrays.asList(samples));
+
+			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
+			for (int i=0; i < samples.length; i++) {
+				ArrayList<IntWritable> sampleIDs = null;
+				if (hashTable.contains(samples[i])) 
+					sampleIDs = hashTable.get(samples[i]);
+				else
+					sampleIDs = new ArrayList<IntWritable>();
+				sampleIDs.add(new IntWritable(i % sampleSize));
+				hashTable.put(samples[i], sampleIDs);
+			}
+			
+			MapFile.Writer writer = null;
+			FileSystem fs = null;
+			try {
+				//writer = MapFile.createWriter(fs, conf, path, LongWritable.class, IntArrayWritable.class);
+				fs = FileSystem.get(conf);
+				writer = new MapFile.Writer(conf, fs,
+						"samplesMap",
+						LongWritable.class,
+						IntArrayWritable.class);
+				for (LongWritable key : hashTable.keySet())
+				{
+					ArrayList<IntWritable> sampleIDs = hashTable.get(key);
+					IntArrayWritable sampleIDsIAW = new IntArrayWritable();
+
+					sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[1]));
+
+					writer.append(key, sampleIDsIAW);
+				}
+
+			} finally {
+				IOUtils.closeStream(writer);
+			}
+
+			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "/samplesMap/data"), conf);
+			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/index"), conf);
+		}
+		else
+		{
+			// NOT REACHED
 		}
 		
 		conf.setPartitionerClass(FIMPartitioner.class);
 
 		conf.setReducerClass(FIMReducer.class);
-			
-		FileInputFormat.addInputPath(conf, new Path(args[1]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[2]));
 			
 		job_start_time = System.currentTimeMillis(); 
 		JobClient.runJob(conf);
@@ -119,8 +200,8 @@ public class MRDriver extends Configured implements Tool
 			
 		confAggr.setInputFormat(KeyValueTextInputFormat.class);
 
-		KeyValueTextInputFormat.addInputPath(confAggr, new Path(args[2]));
-		FileOutputFormat.setOutputPath(confAggr, new Path(args[3]));
+		KeyValueTextInputFormat.addInputPath(confAggr, new Path(args[5]));
+		FileOutputFormat.setOutputPath(confAggr, new Path(args[6]));
 
 		job_start_time = System.currentTimeMillis(); 
 		JobClient.runJob(confAggr);

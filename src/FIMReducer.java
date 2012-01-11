@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
@@ -18,9 +19,13 @@ import fim.fpgrowth.*;
 
 public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
-	//public static final int REDUCER_NUM = 16;
-	
-	public static final int MIN_SUPPORT_PERCENT = 20; 
+	int minFreqPercent;
+
+	@Override
+	public void configure(JobConf conf) 
+	{
+		minFreqPercent = conf.getInt("PARMM.minFreqPercent", 20); 
+	}
 
 	@Override
 	public void reduce(IntWritable key, Iterator<Text> values, 
@@ -59,7 +64,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			
 			// create command line arguments to pass to frequent itemset miner
 			args[0] = new String("-F" + random_file);			// arg for input file
-			args[1] = new String("-S" + MIN_SUPPORT_PERCENT);	// arg for minimum support
+			args[1] = new String("-S" + minFreqPercent);	// arg for minimum support
 			
 			// mine frequent itemsets
 			FPgrowth.mineFrequentItemsets(args, false, output);

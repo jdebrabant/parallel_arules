@@ -1,13 +1,24 @@
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Random;
 
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import cern.jet.random.Binomial;
 
@@ -16,23 +27,27 @@ public class FIMMappers {
 	public class BinomialSamplerMapper extends MapReduceBase 
 		implements Mapper<LongWritable, Text, IntWritable, Text>
 	{
-		/**
-		 * XXX It would be great if we could set these parameters at
-		 * runtime and then read them from the Configuration. MR
-		 */
-		public static final int REDUCER_NUM = 64; 
-		public static final int DATASET_SIZE = 1000;
+		private int reducersNum;
+		private int datasetSize;
+
+		@Override
+		public void configure(JobConf conf) {
+			reducersNum = conf.getInt("PARMM.reducersNum", 64);
+			datasetSize = conf.getInt("PARMM.datasetSize", 1000);
+		}
+
+
 		
 		@Override
 		public void map(LongWritable lineNum, Text value,
 				OutputCollector<IntWritable, Text> output, 
 				Reporter reporter) throws IOException
 		{
-			for (int i=0; i < REDUCER_NUM; i++)
+			for (int i=0; i < reducersNum; i++)
 			{
 				int sampledTimes = Binomial.staticNextInt(
-						DATASET_SIZE / REDUCER_NUM, 
-						1.0 / DATASET_SIZE);
+						datasetSize / reducersNum, 
+						1.0 / datasetSize);
 				/**
 				 * XXX I assume there is a better way of doing
 				 * this, by only having one "message" sent to
@@ -51,12 +66,14 @@ public class FIMMappers {
 	public class CoinFlipSamplerMapper extends MapReduceBase 
 		implements Mapper<LongWritable, Text, IntWritable, Text>
 	{
-		/**
-		 * XXX It would be great if we could set these parameters at
-		 * runtime and then read them from the Configuration. MR
-		 */
-		public static final int REDUCER_NUM = 64; 
-		public static final int DATASET_SIZE = 1000;
+		private int reducersNum;
+		private int datasetSize;
+
+		@Override
+		public void configure(JobConf conf) {
+			reducersNum = conf.getInt("PARMM.reducersNum", 64);
+			datasetSize = conf.getInt("PARMM.datasetSize", 1000);
+		}
 		
 		@Override
 		public void map(LongWritable lineNum, Text value,
@@ -65,10 +82,10 @@ public class FIMMappers {
 		{
 			Random rand = new Random();
 			
-			for (int i=0; i < REDUCER_NUM; i++)
+			for (int i=0; i < reducersNum; i++)
 			{
 				double f = rand.nextDouble();
-				if (f <= 1.0 / DATASET_SIZE)
+				if (f <= 1.0 / datasetSize)
 				{
 					output.collect(new IntWritable(i),
 							value);
@@ -80,11 +97,12 @@ public class FIMMappers {
 	public class PartitionMapper extends MapReduceBase 
 		implements Mapper<LongWritable, Text, IntWritable, Text>
 	{
-		/**
-		 * XXX It would be great if we could set these parameters at
-		 * runtime and then read them from the Configuration. MR
-		 */
-		public static final int REDUCER_NUM = 64; 
+		private int reducersNum;
+
+		@Override
+		public void configure(JobConf conf) {
+			reducersNum = conf.getInt("PARMM.reducersNum", 64);
+		}
 	
 		@Override
 		public void map(LongWritable lineNum, Text value,
@@ -93,9 +111,49 @@ public class FIMMappers {
 		{
 			Random rand = new Random();
 		
-			int key = rand.nextInt(REDUCER_NUM);
+			int key = rand.nextInt(reducersNum);
 			output.collect(new IntWritable(key), value);
 		}
 	}
+
+	public class InputSamplerMapper extends MapReduceBase implements
+		Mapper<LongWritable, Text, IntWritable, Text>
+	{
+		private MapFile.Reader reader;
+		private FileSystem fs;
+
+		@Override
+		public void configure(JobConf conf) { 
+			try {
+				Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
+				fs = FileSystem.getLocal(conf);
+				// XXX Fix, we should look for it.
+				Path path = localFiles[0];
+				MapFile.Reader reader= new MapFile.Reader(fs, "samplesMap", conf);
+			} catch (IOException e) { } 
+		}
+	
+		@Override
+		public void map(LongWritable key, Text value,
+				OutputCollector<IntWritable, Text> output,
+				Reporter reporter) throws IOException
+		{
+			IntArrayWritable arr = new IntArrayWritable();
+			if (reader.get(key, arr) != null)
+			{
+				for(Writable element : arr.get()) 
+				{
+					output.collect((IntWritable) element, value);
+				}
+			}
+		}
+
+		@Override
+		public void close() throws IOException {
+			fs.close();
+		}
+		
+	}
+
 }
 
