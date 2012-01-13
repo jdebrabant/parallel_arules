@@ -5,16 +5,16 @@ elastic-mapreduce \
   --name "test" \
   --bootstrap-action s3://elasticmapreduce/bootstrap-actions/configurations/latest/memory-intensive \
   --jar s3n://kdd12/parallel.jar \
-  --arg .1 \                            # epsilon
-  --arg .1 \                            # delta
-  --arg .2 \                            # minimum frequency 
-  --arg .1 \                            # d
-  --arg 100000\                         # number of transactions
-  --arg 64 \                            # map output groups
-  --arg 1 \                             # mapper id
-  --arg s3n://kdd12/input/ \            # path to input database
-  --arg s3n://kdd12/output/output1/ \   # path to output local FIs
-  --arg s3n://kdd12/output/output2/ \   # path to output global FIs
+  --arg .1 \                         
+  --arg .1 \                         
+  --arg .2 \                         
+  --arg .1 \                         
+  --arg 100000 \                       
+  --arg 64 \                           
+  --arg 1 \                            
+  --arg s3n://kdd12/input/ \           
+  --arg s3n://kdd12/output/output1/ \  
+  --arg s3n://kdd12/output/output2/ \  
   --log-uri s3n://kdd12/logs/ \
   --num-instances 2 \
   --instance-type m1.xlarge \
