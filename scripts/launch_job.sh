@@ -6,8 +6,8 @@ elastic-mapreduce \
   --jar s3n://kdd12/parallel.jar \
   --arg .1 \
   --arg .1 \
-  --arg .2 \
-  --arg .1 \
+  --arg 20 \
+  --arg 10 \
   --arg 100000 \
   --arg 64 \
   --arg 1 \
