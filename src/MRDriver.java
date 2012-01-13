@@ -100,8 +100,8 @@ public class MRDriver extends Configured implements Tool
 		conf.setOutputKeyClass(Text.class); 
 		conf.setOutputValueClass(DoubleWritable.class); 
 
-		FileInputFormat.addInputPath(conf, new Path(args[4]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[5]));
+		FileInputFormat.addInputPath(conf, new Path(args[7]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[8]));
 		
 		// set the mapper classs based on command line option
 		if(args[3].equals("1"))
@@ -216,8 +216,8 @@ public class MRDriver extends Configured implements Tool
 			
 		confAggr.setInputFormat(KeyValueTextInputFormat.class);
 
-		KeyValueTextInputFormat.addInputPath(confAggr, new Path(args[5]));
-		FileOutputFormat.setOutputPath(confAggr, new Path(args[6]));
+		KeyValueTextInputFormat.addInputPath(confAggr, new Path(args[8]));
+		FileOutputFormat.setOutputPath(confAggr, new Path(args[9]));
 
 		job_start_time = System.currentTimeMillis(); 
 		JobClient.runJob(confAggr);
