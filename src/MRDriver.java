@@ -120,16 +120,19 @@ public class MRDriver extends Configured implements Tool
 		{
 			conf.setMapperClass(FIMMappers.InputSamplerMapper.class);
 
+			// create a random sample of size T*m
 			InputSampler.Sampler<LongWritable,Text> sampler = new
-				InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);
+			InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);  
 			LongWritable[] samples = sampler.getSample(new TextInputFormat(), conf);
 
 			Collections.shuffle(Arrays.asList(samples));
 
+			// for each key in the sample, create a list of all T samples to which this key belongs
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			for (int i=0; i < samples.length; i++) {
+			for (int i=0; i < samples.length; i++) 
+			{
 				ArrayList<IntWritable> sampleIDs = null;
-				if (hashTable.contains(samples[i])) 
+				if (hashTable.contains(samples[i]))  
 					sampleIDs = hashTable.get(samples[i]);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
@@ -139,8 +142,11 @@ public class MRDriver extends Configured implements Tool
 			
 			MapFile.Writer writer = null;
 			FileSystem fs = null;
-			try {
+			try 
+			{
 				//writer = MapFile.createWriter(fs, conf, path, LongWritable.class, IntArrayWritable.class);
+				
+				// MapFile.Writer will create 2 files, samplesMap/data and samplesMap/index
 				fs = FileSystem.get(conf);
 				writer = new MapFile.Writer(conf, fs,
 						"samplesMap",
@@ -156,11 +162,13 @@ public class MRDriver extends Configured implements Tool
 					writer.append(key, sampleIDsIAW);
 				}
 
-			} finally {
+			} 
+			finally 
+			{
 				IOUtils.closeStream(writer);
 			}
 
-			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "/samplesMap/data"), conf);
+			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/data"), conf);
 			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/index"), conf);
 		}
 		else

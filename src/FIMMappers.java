@@ -123,13 +123,18 @@ public class FIMMappers {
 		private FileSystem fs;
 
 		@Override
-		public void configure(JobConf conf) { 
+		public void configure(JobConf conf) 
+		{ 
 			try {
 				Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
 				fs = FileSystem.getLocal(conf);
 				// XXX Fix, we should look for it.
+				
 				Path path = localFiles[0];
-				MapFile.Reader reader= new MapFile.Reader(fs, "samplesMap", conf);
+				Path parent = path.getParent(); 
+				
+				if(parent != null)
+					 reader = new MapFile.Reader(fs, parent.toString(), conf);
 			} catch (IOException e) { } 
 		}
 	
