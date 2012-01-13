@@ -148,11 +148,18 @@ public class MRDriver extends Configured implements Tool
 				
 				// MapFile.Writer will create 2 files, samplesMap/data and samplesMap/index
 				fs = FileSystem.get(conf);
+				//fs = FileSystem.getLocal(conf); // get the driver's local filesystem
 				writer = new MapFile.Writer(conf, fs,
 						"samplesMap",
 						LongWritable.class,
 						IntArrayWritable.class);
-				for (LongWritable key : hashTable.keySet())
+				
+				// create sorted list of keys (need to append keys to MapFile in sorted order)
+				ArrayList<LongWritable> sorted_keys = new ArrayList<LongWritable>(hashTable.keySet()); 
+				Collections.sort(sorted_keys); 
+				
+				for(LongWritable key : sorted_keys)
+				//for (LongWritable key : hashTable.keySet())
 				{
 					ArrayList<IntWritable> sampleIDs = hashTable.get(key);
 					IntArrayWritable sampleIDsIAW = new IntArrayWritable();
