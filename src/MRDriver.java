@@ -107,23 +107,24 @@ public class MRDriver extends Configured implements Tool
 		if(args[6].equals("1"))
 		{
 			System.out.println("running partition mapper..."); 
-			//conf.setMapperClass(PartitionMapper.class);
+			conf.setMapperClass(PartitionMapper.class);
 		}
 		else if(args[6].equals("2"))
 		{
 			System.out.println("running binomial mapper..."); 
-			conf.setMapperClass(FIMMappers.BinomialSamplerMapper.class);
+			conf.setMapperClass(BinomialSamplerMapper.class);
 		}
 		else if(args[6].equals("3"))
 		{
 			System.out.println("running coin mapper..."); 
-			conf.setMapperClass(FIMMappers.CoinFlipSamplerMapper.class);
+			conf.setMapperClass(CoinFlipSamplerMapper.class);
 		}
 		else if(args[6].equals("4"))
 		{
 			System.out.println("running sampler mapper..."); 
 			conf.setMapperClass(InputSamplerMapper.class);
 			
+			// XXX call to getSample is causing NullPointerException, didn't debug since we need to rewrite it anyways. JD
 			// create a random sample of size T*m
 			InputSampler.Sampler<LongWritable,Text> sampler = new
 			InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);  
@@ -181,6 +182,7 @@ public class MRDriver extends Configured implements Tool
 
 			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/data"), conf);
 			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/index"), conf);
+			DistributedCache.createSymlink(conf); 
 		}
 		else
 		{
@@ -198,9 +200,8 @@ public class MRDriver extends Configured implements Tool
 			
 		job_runtime = (job_end_time-job_start_time) / 1000; 
 			
-		System.out.println("local FIM runtime (seconds): " + job_runtime);
-		
-		
+		System.out.println("local FIM runtime (seconds): " + job_runtime);	
+	
 		/************************ Job 2 (aggregation) Configuration ************************/
 		
 		JobConf confAggr = new JobConf(getConf());
