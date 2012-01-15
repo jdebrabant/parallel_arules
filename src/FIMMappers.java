@@ -116,49 +116,5 @@ public class FIMMappers {
 		}
 	}
 
-	public class InputSamplerMapper extends MapReduceBase implements
-		Mapper<LongWritable, Text, IntWritable, Text>
-	{
-		private MapFile.Reader reader;
-		private FileSystem fs;
-
-		@Override
-		public void configure(JobConf conf) 
-		{ 
-			try {
-				Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
-				fs = FileSystem.getLocal(conf);
-				// XXX Fix, we should look for it.
-				
-				Path path = localFiles[0];
-				Path parent = path.getParent(); 
-				
-				if(parent != null)
-					 reader = new MapFile.Reader(fs, parent.toString(), conf);
-			} catch (IOException e) { } 
-		}
-	
-		@Override
-		public void map(LongWritable key, Text value,
-				OutputCollector<IntWritable, Text> output,
-				Reporter reporter) throws IOException
-		{
-			IntArrayWritable arr = new IntArrayWritable();
-			if (reader.get(key, arr) != null)
-			{
-				for(Writable element : arr.get()) 
-				{
-					output.collect((IntWritable) element, value);
-				}
-			}
-		}
-
-		@Override
-		public void close() throws IOException {
-			fs.close();
-		}
-		
-	}
-
 }
 

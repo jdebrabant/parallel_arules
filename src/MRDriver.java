@@ -104,22 +104,26 @@ public class MRDriver extends Configured implements Tool
 		FileOutputFormat.setOutputPath(conf, new Path(args[8]));
 		
 		// set the mapper classs based on command line option
-		if(args[3].equals("1"))
+		if(args[6].equals("1"))
 		{
-			conf.setMapperClass(FIMMappers.PartitionMapper.class);
+			System.out.println("running partition mapper..."); 
+			conf.setMapperClass(PartitionMapper.class);
 		}
-		else if(args[3].equals("2"))
+		else if(args[6].equals("2"))
 		{
+			System.out.println("running binomial mapper..."); 
 			conf.setMapperClass(FIMMappers.BinomialSamplerMapper.class);
 		}
-		else if(args[3].equals("3"))
+		else if(args[6].equals("3"))
 		{
+			System.out.println("running coin mapper..."); 
 			conf.setMapperClass(FIMMappers.CoinFlipSamplerMapper.class);
 		}
-		else if(args[3].equals("4"))
+		else if(args[6].equals("4"))
 		{
-			conf.setMapperClass(FIMMappers.InputSamplerMapper.class);
-
+			System.out.println("running sampler mapper..."); 
+			conf.setMapperClass(InputSamplerMapper.class);
+			
 			// create a random sample of size T*m
 			InputSampler.Sampler<LongWritable,Text> sampler = new
 			InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);  
@@ -183,6 +187,7 @@ public class MRDriver extends Configured implements Tool
 			// NOT REACHED
 		}
 		
+		// XXX Why is it necessary to change the default hash partitioner? JD
 		conf.setPartitionerClass(FIMPartitioner.class);
 
 		conf.setReducerClass(FIMReducer.class);
