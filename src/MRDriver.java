@@ -107,7 +107,7 @@ public class MRDriver extends Configured implements Tool
 		if(args[6].equals("1"))
 		{
 			System.out.println("running partition mapper..."); 
-			conf.setMapperClass(PartitionMapper.class);
+			//conf.setMapperClass(PartitionMapper.class);
 		}
 		else if(args[6].equals("2"))
 		{
