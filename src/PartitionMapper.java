@@ -20,12 +20,24 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import cern.jet.random.Binomial;
-
-public class FIMMappers {
-
-
-
-
+public class PartitionMapper extends MapReduceBase 
+implements Mapper<LongWritable, Text, IntWritable, Text>
+{
+	private int reducersNum;
+	
+	@Override
+	public void configure(JobConf conf) {
+		reducersNum = conf.getInt("PARMM.reducersNum", 64);
+	}
+	
+	@Override
+	public void map(LongWritable lineNum, Text value,
+					OutputCollector<IntWritable, Text> output,
+					Reporter reporter) throws IOException
+	{
+		Random rand = new Random();
+		
+		int key = rand.nextInt(reducersNum);
+		output.collect(new IntWritable(key), value);
+	}
 }
-

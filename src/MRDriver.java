@@ -173,13 +173,13 @@ public class MRDriver extends Configured implements Tool
 
 					writer.append(key, sampleIDsIAW);
 				}
-
 			} 
 			finally 
 			{
 				IOUtils.closeStream(writer);
 			}
 
+			// add meta files to the distributed cache and create sym links
 			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/data"), conf);
 			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/index"), conf);
 			DistributedCache.createSymlink(conf); 
