@@ -6,8 +6,8 @@ import java.net.URI;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 
@@ -32,15 +32,15 @@ public class Txt2SeqConverter
 		  
 		Path path = new Path(seqFileName);
 
-		IntWritable key = new IntWritable();
+		LongWritable key = new LongWritable();
 		Text value = new Text();
 		SequenceFile.Writer writer = null;
 		try
 		{
-		  	writer = SequenceFile.createWriter(fs, conf, path, IntWritable.class, Text.class);
+		  	writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class);
 			BufferedReader br = new BufferedReader(new FileReader(args[0]));
 
-			int transactionID = 1;
+			int transactionID = 0;
 			String transaction = null;
 			while ((transaction = br.readLine()) != null)
 			{
