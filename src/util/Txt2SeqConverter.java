@@ -15,6 +15,11 @@ public class Txt2SeqConverter
 {
 	public static void main(String[] args)
 	{
+	  	if (args.length != 2) 
+		{
+		  	System.out.println("Usage: env HADOOP_CLASSPATH=.:$HADOOP_CLASSPATH hadoop Txt2SeqConverter input output");
+			System.exit(1);
+		}
 	  	FileSystem fs = null;
 	  	String seqFileName = args[1];
 		Configuration conf = new Configuration();
