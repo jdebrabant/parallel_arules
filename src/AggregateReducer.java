@@ -13,7 +13,7 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
 public class AggregateReducer extends MapReduceBase 
-	implements Reducer<Text, Text, Text, Text>
+	implements Reducer<Text, DoubleWritable, Text, Text>
 {
 	int reducersNum;
 	int requiredNum;
@@ -30,7 +30,7 @@ public class AggregateReducer extends MapReduceBase
 
 
 	@Override
-	public void reduce(Text itemset, Iterator<Text> values, 
+	public void reduce(Text itemset, Iterator<DoubleWritable> values, 
 			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{

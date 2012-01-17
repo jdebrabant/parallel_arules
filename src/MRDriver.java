@@ -39,8 +39,8 @@ import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.KeyValueTextInputFormat;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -102,7 +102,8 @@ public class MRDriver extends Configured implements Tool
 
 		conf.setInputFormat(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.addInputPath(conf, new Path(args[7]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[8]));
+		conf.setOutputFormat(SequenceFileOutputFormat.class);
+		SequenceFileOutputFormat.setOutputPath(conf, new Path(args[8]));
 
 		
 		// set the mapper class based on command line option
@@ -197,7 +198,7 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setJarByClass(MRDriver.class);
 			
 		confAggr.setMapOutputKeyClass(Text.class); 
-		confAggr.setMapOutputValueClass(Text.class); 
+		confAggr.setMapOutputValueClass(DoubleWritable.class); 
 			
 		confAggr.setOutputKeyClass(Text.class); 
 		confAggr.setOutputValueClass(Text.class); 
@@ -205,9 +206,9 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setMapperClass(IdentityMapper.class);
 		confAggr.setReducerClass(AggregateReducer.class);
 			
-		confAggr.setInputFormat(KeyValueTextInputFormat.class);
+		confAggr.setInputFormat(SequenceFileInputFormat.class);
+		SequenceFileInputFormat.addInputPath(confAggr, new Path(args[8]));
 
-		KeyValueTextInputFormat.addInputPath(confAggr, new Path(args[8]));
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[9]));
 
 		job_start_time = System.currentTimeMillis(); 
