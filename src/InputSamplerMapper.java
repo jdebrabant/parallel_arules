@@ -5,7 +5,6 @@ import java.util.Random;
 
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.IOUtils;
@@ -30,16 +29,13 @@ public class InputSamplerMapper extends MapReduceBase implements
 		public void configure(JobConf conf) 
 		{ 
 			try {
-				Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
+				DistributedCache.createSymlink(conf); 
 				fs = FileSystem.getLocal(conf);
-				// XXX Fix, we should look for it.
-				
-				Path path = localFiles[0];
-				Path parent = path.getParent(); 
-				
-				if(parent != null)
-					reader = new MapFile.Reader(fs, parent.toString(), conf);
-			} catch (IOException e) { } 
+				reader = new MapFile.Reader(fs, ".", conf);
+			} catch (IOException e) 
+			{ 
+			  	System.out.println(e.getMessage());
+			} 
 		}
 		
 		@Override
@@ -63,3 +59,4 @@ public class InputSamplerMapper extends MapReduceBase implements
 		}
 		
 	}
+
