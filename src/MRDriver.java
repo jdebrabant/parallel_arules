@@ -27,12 +27,12 @@ import java.util.Random;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapFile;
+import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -87,6 +87,9 @@ public class MRDriver extends Configured implements Tool
 		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
 		conf.setFloat("PARMM.epsilon", epsilon);
 			
+		// XXX Check, is this influencing confAggr too? MR
+		conf.setNumReduceTasks(numSamples);
+
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
 
@@ -101,8 +104,9 @@ public class MRDriver extends Configured implements Tool
 		conf.setInputFormat(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.addInputPath(conf, new Path(args[7]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[8]));
+
 		
-		// set the mapper classs based on command line option
+		// set the mapper class based on command line option
 		if(args[6].equals("1"))
 		{
 			System.out.println("running partition mapper..."); 
@@ -125,15 +129,17 @@ public class MRDriver extends Configured implements Tool
 			
 			// create a random sample of size T*m
 			Random rand = new Random();
-			int[] samples = new int[numSamples];
-			for (int i = 0; i < numSamples; i++)
+			int[] samples = new int[numSamples * sampleSize];
+			for (int i = 0; i < numSamples * sampleSize; i++)
 			{
 				samples[i] = rand.nextInt(datasetSize);
 			}
 
 			// for each key in the sample, create a list of all T samples to which this key belongs
+			// XXX I wonder whether we could more efficiently create
+			// the MapWritable directly. MR
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			for (int i=0; i < numSamples; i++) 
+			for (int i=0; i < numSamples * sampleSize; i++) 
 			{
 				ArrayList<IntWritable> sampleIDs = null;
 				LongWritable key = new LongWritable(samples[i]);
@@ -141,49 +147,25 @@ public class MRDriver extends Configured implements Tool
 					sampleIDs = hashTable.get(key);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
-				sampleIDs.add(new IntWritable(i % sampleSize));
+				sampleIDs.add(new IntWritable(i / sampleSize));
 				hashTable.put(key, sampleIDs);
 			}
-			
-			MapFile.Writer writer = null;
-			FileSystem fs = null;
-			try 
-			{
-				//writer = MapFile.createWriter(fs, conf, path, LongWritable.class, IntArrayWritable.class);
-				
-				// MapFile.Writer will create 2 files, samplesMap/data and samplesMap/index
-				fs = FileSystem.get(conf);
-				//fs = FileSystem.getLocal(conf); // get the driver's local filesystem
-				writer = new MapFile.Writer(conf, fs,
-						"samplesMap",
-						LongWritable.class,
-						IntArrayWritable.class);
-				
-				// create sorted list of keys (need to append keys to MapFile in sorted order)
-				ArrayList<LongWritable> sorted_keys = new ArrayList<LongWritable>(hashTable.keySet()); 
-				// XXX this is unchecked according to javac. MR
-				Collections.sort(sorted_keys); 
-				
-				for(LongWritable key : sorted_keys)
-				//for (LongWritable key : hashTable.keySet())
-				{
-					ArrayList<IntWritable> sampleIDs = hashTable.get(key);
-					IntArrayWritable sampleIDsIAW = new IntArrayWritable();
 
-					sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[1]));
-
-					writer.append(key, sampleIDsIAW);
-				}
-			} 
-			finally 
+			MapWritable map = new MapWritable();
+			for (LongWritable key : hashTable.keySet())
 			{
-				IOUtils.closeStream(writer);
+			  	ArrayList<IntWritable> sampleIDs = hashTable.get(key);
+				IntArrayWritable sampleIDsIAW = new IntArrayWritable();
+				sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[1]));
+				map.put(key, sampleIDsIAW);
 			}
 
-			// add meta files to the distributed cache and create sym links
-			DistributedCache.createSymlink(conf); 
-			DistributedCache.addCacheFile(new URI("samplesMap/data#data"), conf);
-			DistributedCache.addCacheFile(new URI("samplesMap/index#index"), conf);
+			FileSystem fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
+			FSDataOutputStream out = fs.create(new Path("samplesMap.ser"), true);
+			map.write(out);
+			out.sync();
+			out.close();
+			DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
 		}
 		else
 		{
