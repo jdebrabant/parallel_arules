@@ -1,8 +1,0 @@
-*.class
-*.db
-*.dat
-*.asc
-data/*
-writeup/*
-results/*
-scripts/*
