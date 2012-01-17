@@ -79,7 +79,14 @@ public class MRDriver extends Configured implements Tool
 		JobConf conf = new JobConf(getConf()); 
 
 		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
-		double phi = 2 + 4 * Math.log(delta) / numSamples - Math.sqrt(16 * Math.pow(Math.log(delta), 2) / numSamples + 8 * Math.log(delta) / numSamples + 3);
+		double phi = 1 + (2 * Math.log(delta) / numSamples) + Math.sqrt(Math.pow(2 * Math.log(delta) / numSamples , 2) - (6 * Math.log(delta) / numSamples));
+
+		// XXX There shouldn't be any problem in doing this, but I want
+		// to check with Eli. MR
+		if (phi > 1.0) 
+		{
+		  	phi = 1.0;
+		}
 		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
 
 		conf.setInt("PARMM.reducersNum", numSamples);
