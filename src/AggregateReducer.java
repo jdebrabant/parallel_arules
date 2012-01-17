@@ -13,7 +13,7 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
 public class AggregateReducer extends MapReduceBase 
-	implements Reducer<Text, Text, Text, DoubleWritable>
+	implements Reducer<Text, Text, Text, Text>
 {
 	int reducersNum;
 	int requiredNum;
@@ -31,7 +31,7 @@ public class AggregateReducer extends MapReduceBase
 
 	@Override
 	public void reduce(Text itemset, Iterator<Text> values, 
-			OutputCollector<Text,DoubleWritable> output, 
+			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{
 		ArrayList<Double> valuesArrList = new ArrayList<Double>();
@@ -79,11 +79,8 @@ public class AggregateReducer extends MapReduceBase
 				}
 			}
 			
-			/**
-			 * XXX We need to fix this output to include the bounds
-			 * for the confidence interval. MR
-			 */
-			output.collect(itemset, new DoubleWritable(estimatedFreq));
+			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
+			output.collect(itemset, new Text(estFreqAndBoundsStr));
 		} // end if (valuesArrList.size() >= requiredNum)
 	}
 }

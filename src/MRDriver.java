@@ -73,7 +73,7 @@ public class MRDriver extends Configured implements Tool
 		int datasetSize = Integer.parseInt(args[4]);
 		int nodes = Integer.parseInt(args[5]);
 
-		
+
 		/************************ Job 1 (local FIM) Configuration ************************/
 		
 		JobConf conf = new JobConf(getConf()); 
@@ -189,6 +189,7 @@ public class MRDriver extends Configured implements Tool
 		JobConf confAggr = new JobConf(getConf());
 
 		confAggr.setInt("PARMM.reducersNum", numSamples);
+		confAggr.setFloat("PARMM.epsilon", epsilon);
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		confAggr.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
@@ -199,7 +200,7 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setMapOutputValueClass(Text.class); 
 			
 		confAggr.setOutputKeyClass(Text.class); 
-		confAggr.setOutputValueClass(DoubleWritable.class); 
+		confAggr.setOutputValueClass(Text.class); 
 			
 		confAggr.setMapperClass(IdentityMapper.class);
 		confAggr.setReducerClass(AggregateReducer.class);
