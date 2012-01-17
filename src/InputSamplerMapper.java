@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Random;
 
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.IntWritable;
@@ -29,7 +28,6 @@ public class InputSamplerMapper extends MapReduceBase implements
 		public void configure(JobConf conf) 
 		{ 
 			try {
-				DistributedCache.createSymlink(conf); 
 				fs = FileSystem.getLocal(conf);
 				reader = new MapFile.Reader(fs, ".", conf);
 			} catch (IOException e) 
