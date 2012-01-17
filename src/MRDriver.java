@@ -87,7 +87,6 @@ public class MRDriver extends Configured implements Tool
 		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
 		conf.setFloat("PARMM.epsilon", epsilon);
 			
-		// XXX Check, is this influencing confAggr too? MR
 		conf.setNumReduceTasks(numSamples);
 
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
@@ -188,6 +187,8 @@ public class MRDriver extends Configured implements Tool
 		/************************ Job 2 (aggregation) Configuration ************************/
 		
 		JobConf confAggr = new JobConf(getConf());
+
+		confAggr.setInt("PARMM.reducersNum", numSamples);
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		confAggr.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
