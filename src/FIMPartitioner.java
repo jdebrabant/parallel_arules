@@ -4,12 +4,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Partitioner;
 
-public class FIMPartitioner implements Partitioner<LongWritable, Text> {
+public class FIMPartitioner implements Partitioner<IntWritable, Text> {
 	@Override
 	public void configure(JobConf job) {}
 
 	@Override
-	public int getPartition(LongWritable key, Text value, int numPartitions) 
+	public int getPartition(IntWritable key, Text value, int numPartitions) 
 	{
 		return (int)key.get();
 	}
