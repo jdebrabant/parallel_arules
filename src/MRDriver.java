@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Random;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
@@ -34,13 +35,12 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
-import org.apache.hadoop.mapred.lib.InputSampler;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.KeyValueTextInputFormat;
-import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -78,11 +78,9 @@ public class MRDriver extends Configured implements Tool
 		
 		JobConf conf = new JobConf(getConf()); 
 
-		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.tasks.maximum", 10));
+		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
 		double phi = 2 + 4 * Math.log(delta) / numSamples - Math.sqrt(16 * Math.pow(Math.log(delta), 2) / numSamples + 8 * Math.log(delta) / numSamples + 3);
-		assert phi > 0.0 && phi < 1.0;
 		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
-		double freq = datasetSize / ((double) numSamples * sampleSize);
 
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
@@ -100,7 +98,8 @@ public class MRDriver extends Configured implements Tool
 		conf.setOutputKeyClass(Text.class); 
 		conf.setOutputValueClass(DoubleWritable.class); 
 
-		FileInputFormat.addInputPath(conf, new Path(args[7]));
+		conf.setInputFormat(SequenceFileInputFormat.class);
+		SequenceFileInputFormat.addInputPath(conf, new Path(args[7]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[8]));
 		
 		// set the mapper classs based on command line option
@@ -124,25 +123,26 @@ public class MRDriver extends Configured implements Tool
 			System.out.println("running sampler mapper..."); 
 			conf.setMapperClass(InputSamplerMapper.class);
 			
-			// XXX call to getSample is causing NullPointerException, didn't debug since we need to rewrite it anyways. JD
 			// create a random sample of size T*m
-			InputSampler.Sampler<LongWritable,Text> sampler = new
-			InputSampler.RandomSampler<LongWritable,Text>(freq, numSamples);  
-			LongWritable[] samples = sampler.getSample(new TextInputFormat(), conf);
-
-			Collections.shuffle(Arrays.asList(samples));
+			Random rand = new Random();
+			int[] samples = new int[numSamples];
+			for (int i = 0; i < numSamples; i++)
+			{
+				samples[i] = rand.nextInt(datasetSize);
+			}
 
 			// for each key in the sample, create a list of all T samples to which this key belongs
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			for (int i=0; i < samples.length; i++) 
+			for (int i=0; i < numSamples; i++) 
 			{
 				ArrayList<IntWritable> sampleIDs = null;
-				if (hashTable.contains(samples[i]))  
-					sampleIDs = hashTable.get(samples[i]);
+				LongWritable key = new LongWritable(samples[i]);
+				if (hashTable.contains(key))  
+					sampleIDs = hashTable.get(key);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
 				sampleIDs.add(new IntWritable(i % sampleSize));
-				hashTable.put(samples[i], sampleIDs);
+				hashTable.put(key, sampleIDs);
 			}
 			
 			MapFile.Writer writer = null;
@@ -161,6 +161,7 @@ public class MRDriver extends Configured implements Tool
 				
 				// create sorted list of keys (need to append keys to MapFile in sorted order)
 				ArrayList<LongWritable> sorted_keys = new ArrayList<LongWritable>(hashTable.keySet()); 
+				// XXX this is unchecked according to javac. MR
 				Collections.sort(sorted_keys); 
 				
 				for(LongWritable key : sorted_keys)
@@ -180,9 +181,9 @@ public class MRDriver extends Configured implements Tool
 			}
 
 			// add meta files to the distributed cache and create sym links
-			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/data"), conf);
-			DistributedCache.addCacheFile(new URI(fs.getUri().toString() + "samplesMap/index"), conf);
 			DistributedCache.createSymlink(conf); 
+			DistributedCache.addCacheFile(new URI("samplesMap/data#data"), conf);
+			DistributedCache.addCacheFile(new URI("samplesMap/index#index"), conf);
 		}
 		else
 		{
