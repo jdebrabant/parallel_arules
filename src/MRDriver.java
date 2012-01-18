@@ -47,7 +47,6 @@ import org.apache.hadoop.util.ToolRunner;
 public class MRDriver extends Configured implements Tool
 {
 	public final int MR_TIMEOUT_MILLI = 60000000;
-	public final double PARMM_PHI = 0.2;
 	
 	public static void main(String args[]) throws Exception
 	{
@@ -80,15 +79,30 @@ public class MRDriver extends Configured implements Tool
 		JobConf conf = new JobConf(getConf()); 
 
 		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
-		int reqApproxNum = (int) Math.ceil(Math.sqrt(numSamples*(1-PARMM_PHI)*2*Math.log(1/delta)) + 1);
-		reqApproxNum = Math.max(numSamples/2 +1, reqApproxNum);
-		if (reqApproxNum > numSamples*(1-PARMM_PHI))
+		int reqApproxNum = 0;
+		double phi = 0.25;
+		double low = 0.0;
+		double top = 0.50;
+		while (low <= top)
 		{
-		  	System.err.println("ERROR: reqApproxNum > numSamples*PARMM_PHI. Choose anoher PARMM_PHI");
-			System.exit(1);
+		  	phi = (low + top) / 2;
+			reqApproxNum = (int) Math.ceil(Math.sqrt(numSamples*(1-phi)*2*Math.log(1/delta)) + 1);
+			reqApproxNum = Math.max(numSamples/2 +1, reqApproxNum);
+			if (reqApproxNum == Math.floor(numSamples*(1-phi)))
+			{
+			  	break;
+			}
+			if (reqApproxNum > numSamples*(1-phi))
+			{
+			  	top = phi;
+			}
+			if (reqApproxNum < numSamples*(1-phi))
+			{
+			  	low = phi;
+			}
 		}
 
-		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ PARMM_PHI)));
+		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
 
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
