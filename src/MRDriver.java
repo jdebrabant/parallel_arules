@@ -47,6 +47,7 @@ import org.apache.hadoop.util.ToolRunner;
 public class MRDriver extends Configured implements Tool
 {
 	public final int MR_TIMEOUT_MILLI = 60000000;
+	public final double PARMM_PHI = 0.2;
 	
 	public static void main(String args[]) throws Exception
 	{
@@ -79,13 +80,15 @@ public class MRDriver extends Configured implements Tool
 		JobConf conf = new JobConf(getConf()); 
 
 		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
-		double phi = 1 + (2 * Math.log(delta) / numSamples) + Math.sqrt(Math.pow(2 * Math.log(delta) / numSamples , 2) - (2 * Math.log(delta) / numSamples));
-
-		if (phi > 1.0) 
+		int reqApproxNum = (int) Math.ceil(Math.sqrt(numSamples*(1-PARMM_PHI)*2*Math.log(1/delta)) + 1);
+		reqApproxNum = Math.max(numSamples/2 +1, reqApproxNum);
+		if (reqApproxNum > numSamples*(1-PARMM_PHI))
 		{
-		  	phi = 1.0 - 0.000001;
+		  	System.err.println("ERROR: reqApproxNum > numSamples*PARMM_PHI. Choose anoher PARMM_PHI");
+			System.exit(1);
 		}
-		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
+
+		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ PARMM_PHI)));
 
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
@@ -177,7 +180,9 @@ public class MRDriver extends Configured implements Tool
 			// NOT REACHED
 		}
 		
-		// XXX Why is it necessary to change the default hash partitioner? JD
+		// We don't use the default hash partitioner because we want to
+		// maximize the parallelism. That's why we also fix the number
+		// of reducers.
 		conf.setPartitionerClass(FIMPartitioner.class);
 
 		conf.setReducerClass(FIMReducer.class);
@@ -196,6 +201,7 @@ public class MRDriver extends Configured implements Tool
 
 		confAggr.setInt("PARMM.reducersNum", numSamples);
 		confAggr.setFloat("PARMM.epsilon", epsilon);
+		conf.setInt("PARMM.reqApproxNum", reqApproxNum);
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		confAggr.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 

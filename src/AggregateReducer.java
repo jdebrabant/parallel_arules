@@ -16,14 +16,14 @@ public class AggregateReducer extends MapReduceBase
 	implements Reducer<Text, DoubleWritable, Text, Text>
 {
 	int reducersNum;
-	int requiredNum;
+	int reqApproxNum;
 	float epsilon;
 
 	@Override
 	public void configure(JobConf conf) 
 	{
 		reducersNum = conf.getInt("PARMM.reducersNum", 64);
-		requiredNum = reducersNum / 2 + 1;
+		reqApproxNum = conf.getInt("PARMM.reqApproxNum", reducersNum / 2 +1);
 		epsilon = conf.getFloat("PARMM.epsilon", (float) 0.02);
 	}
 
@@ -42,10 +42,10 @@ public class AggregateReducer extends MapReduceBase
 		}
 		/**
 		 * Only consider the itemset as "global frequent" if it
-		 * appears among the "local frequent" itemsets at least
-		 * requiredNum times.
+		 * appears among the "local frequent" itemsets a sufficient
+		 * number of times.
 		 */
-		if (valuesArrList.size() >= requiredNum)
+		if (valuesArrList.size() >= reqApproxNum)
 		{
 			Double[] valuesArr = new Double[valuesArrList.size()];
 			valuesArrList.toArray(valuesArr);
@@ -56,26 +56,23 @@ public class AggregateReducer extends MapReduceBase
 			 * requiredNum estimates of the frequency of the
 			 * itemset. Use the center of this interval as global
 			 * estimate for the frequency. The confidence interval
-			 * is obtained by enlarging the above interva by epsilon
-			 * / 2 on both sides.
-			 *
-			 * XXX It seems to me that  it would actually be enough to
-			 * require that the interval contains REDUCER_NUM / 2 +
-			 * 1 estimates, independently on requiredNum. MR
+			 * is obtained by enlarging the above interval by
+			 * epsilon/2 on both sides.
 			 */
-			double minIntervalLength = valuesArr[requiredNum - 1] - valuesArr[0];
+			int intervalPoints = reducersNum - reqApproxNum + 1;
+			double minIntervalLength = valuesArr[intervalPoints- 1] - valuesArr[0];
 			double estimatedFreq = valuesArr[0] + minIntervalLength / 2;
 			double confIntervalLowBound = valuesArr[0] - epsilon / 2;
-			double confIntervalUppBound = valuesArr[requiredNum -1] + epsilon / 2;
-			for (int i = 1; i < valuesArr.length - requiredNum; i++)
+			double confIntervalUppBound = valuesArr[intervalPoints -1] + epsilon / 2;
+			for (int i = 1; i < valuesArr.length - intervalPoints; i++)
 			{
-				double intervalLength = valuesArr[requiredNum + i] - valuesArr[i];
+				double intervalLength = valuesArr[intervalPoints + i] - valuesArr[i];
 				if (intervalLength < minIntervalLength) 
 				{
 					minIntervalLength = intervalLength;
 					estimatedFreq = valuesArr[i] + minIntervalLength / 2;
 					confIntervalLowBound = valuesArr[i] - epsilon / 2;
-					confIntervalUppBound = valuesArr[requiredNum + i] + epsilon / 2;
+					confIntervalUppBound = valuesArr[intervalPoints + i] + epsilon / 2;
 				}
 			}
 			
