@@ -17,6 +17,7 @@ public class AggregateReducer extends MapReduceBase
 {
 	int reducersNum;
 	int reqApproxNum;
+	int sampleSize;
 	float epsilon;
 
 	@Override
@@ -25,6 +26,7 @@ public class AggregateReducer extends MapReduceBase
 		reducersNum = conf.getInt("PARMM.reducersNum", 64);
 		reqApproxNum = conf.getInt("PARMM.reqApproxNum", reducersNum / 2 +1);
 		epsilon = conf.getFloat("PARMM.epsilon", (float) 0.02);
+		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
 	}
 
 
@@ -61,9 +63,7 @@ public class AggregateReducer extends MapReduceBase
 			 */
 			int intervalPoints = reducersNum - reqApproxNum + 1;
 			double minIntervalLength = valuesArr[intervalPoints- 1] - valuesArr[0];
-			double estimatedFreq = valuesArr[0] + minIntervalLength / 2;
-			double confIntervalLowBound = valuesArr[0] - epsilon / 2;
-			double confIntervalUppBound = valuesArr[intervalPoints -1] + epsilon / 2;
+			double estimatedFreq = (valuesArr[0] + minIntervalLength / 2);
 			for (int i = 1; i < valuesArr.length - intervalPoints; i++)
 			{
 				double intervalLength = valuesArr[intervalPoints + i] - valuesArr[i];
@@ -71,10 +71,11 @@ public class AggregateReducer extends MapReduceBase
 				{
 					minIntervalLength = intervalLength;
 					estimatedFreq = valuesArr[i] + minIntervalLength / 2;
-					confIntervalLowBound = valuesArr[i] - epsilon / 2;
-					confIntervalUppBound = valuesArr[intervalPoints + i] + epsilon / 2;
 				}
 			}
+			double confIntervalLowBound = (estimatedFreq - minIntervalLength / 2) / sampleSize - epsilon / 2;
+			double confIntervalUppBound = (estimatedFreq + minIntervalLength / 2) / sampleSize + epsilon / 2;
+			estimatedFreq = estimatedFreq / sampleSize;
 			
 			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
 			output.collect(itemset, new Text(estFreqAndBoundsStr));

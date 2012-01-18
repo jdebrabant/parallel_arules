@@ -35,7 +35,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
-import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
@@ -214,8 +213,9 @@ public class MRDriver extends Configured implements Tool
 		JobConf confAggr = new JobConf(getConf());
 
 		confAggr.setInt("PARMM.reducersNum", numSamples);
+		confAggr.setInt("PARMM.reqApproxNum", reqApproxNum);
+		confAggr.setInt("PARMM.sampleSize", );
 		confAggr.setFloat("PARMM.epsilon", epsilon);
-		conf.setInt("PARMM.reqApproxNum", reqApproxNum);
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		confAggr.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
