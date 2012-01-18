@@ -214,7 +214,7 @@ public class MRDriver extends Configured implements Tool
 
 		confAggr.setInt("PARMM.reducersNum", numSamples);
 		confAggr.setInt("PARMM.reqApproxNum", reqApproxNum);
-		confAggr.setInt("PARMM.sampleSize", );
+		confAggr.setInt("PARMM.sampleSize", sampleSize);
 		confAggr.setFloat("PARMM.epsilon", epsilon);
 
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
