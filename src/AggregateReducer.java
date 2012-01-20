@@ -61,18 +61,31 @@ public class AggregateReducer extends MapReduceBase
 			 * is obtained by enlarging the above interval by
 			 * epsilon/2 on both sides.
 			 */
-			int intervalPoints = reducersNum - reqApproxNum + 1;
-			double minIntervalLength = valuesArr[intervalPoints- 1] - valuesArr[0];
-			double estimatedFreq = (valuesArr[0] + minIntervalLength / 2);
-			for (int i = 1; i < valuesArr.length - intervalPoints; i++)
+			double minIntervalLength = valuesArr[reqApproxNum - 1] - valuesArr[0];
+			int startIndex = 0;
+			for (int i = 1; i < valuesArr.length - reqApproxNum; i++)
 			{
-				double intervalLength = valuesArr[intervalPoints + i] - valuesArr[i];
+				double intervalLength = valuesArr[reqApproxNum - 1 + i] - valuesArr[i];
 				if (intervalLength < minIntervalLength) 
 				{
 					minIntervalLength = intervalLength;
-					estimatedFreq = valuesArr[i] + minIntervalLength / 2;
+					startIndex = i;
 				}
 			}
+			int reqApproxNum2 = reducersNum - reqApproxNum + 1;
+			Double[] valuesSubArr = Arrays.copyOfRange(valuesArr, startIndex, startIndex + reqApproxNum -1);
+			minIntervalLength = valuesSubArr[reqApproxNum2 - 1] - valuesSubArr[0];
+			double estimatedFreq = (valuesSubArr[0] + minIntervalLength) / 2; 
+			for (int i = 1; i < valuesSubArr.length - reqApproxNum2; i++)
+			{
+				double intervalLength = valuesSubArr[reqApproxNum2 - 1 + i] - valuesSubArr[i];
+				if (intervalLength < minIntervalLength) 
+				{
+					minIntervalLength = intervalLength;
+					estimatedFreq = valuesSubArr[i] + minIntervalLength / 2; 
+				}
+			}
+
 			double confIntervalLowBound = (estimatedFreq - minIntervalLength / 2) / sampleSize - epsilon / 2;
 			double confIntervalUppBound = (estimatedFreq + minIntervalLength / 2) / sampleSize + epsilon / 2;
 			estimatedFreq = estimatedFreq / sampleSize;
