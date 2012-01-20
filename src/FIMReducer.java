@@ -60,6 +60,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 				dat_out.write(transaction + "\n"); 
 			}
 			
+			dat_out.flush();
 			dat_out.close(); 
 			
 			// create command line arguments to pass to frequent itemset miner
