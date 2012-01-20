@@ -75,7 +75,7 @@ public class AggregateReducer extends MapReduceBase
 			int reqApproxNum2 = reducersNum - reqApproxNum + 1;
 			Double[] valuesSubArr = Arrays.copyOfRange(valuesArr, startIndex, startIndex + reqApproxNum -1);
 			minIntervalLength = valuesSubArr[reqApproxNum2 - 1] - valuesSubArr[0];
-			double estimatedFreq = (valuesSubArr[0] + minIntervalLength) / 2; 
+			double estimatedFreq = valuesSubArr[0] + minIntervalLength / 2; 
 			for (int i = 1; i < valuesSubArr.length - reqApproxNum2; i++)
 			{
 				double intervalLength = valuesSubArr[reqApproxNum2 - 1 + i] - valuesSubArr[i];
