@@ -164,7 +164,7 @@ public class MRDriver extends Configured implements Tool
 			{
 				ArrayList<IntWritable> sampleIDs = null;
 				LongWritable key = new LongWritable(samples[i]);
-				if (hashTable.contains(key))  
+				if (hashTable.containsKey(key))  
 					sampleIDs = hashTable.get(key);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
@@ -177,7 +177,7 @@ public class MRDriver extends Configured implements Tool
 			{
 			  	ArrayList<IntWritable> sampleIDs = hashTable.get(key);
 				IntArrayWritable sampleIDsIAW = new IntArrayWritable();
-				sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[1]));
+				sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[sampleIDs.size()]));
 				map.put(key, sampleIDsIAW);
 			}
 
