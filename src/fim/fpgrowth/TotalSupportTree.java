@@ -65,6 +65,11 @@ public class TotalSupportTree extends AssocRuleMining {
     public TotalSupportTree(String[] args) {
 		super(args);
 	}
+
+    public TotalSupportTree(Iterator<Text> transactions, int numTransactions, float minFreqPercent) {
+		super(transactions, numTransactions, minFreqPercent);
+	}
+	
 	
     /* ------ METHODS ------ */
 	

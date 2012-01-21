@@ -13,6 +13,7 @@
 package fim.fpgrowth; 
 
 import java.io.*;
+import java.util.Iterator;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.DoubleWritable;
@@ -27,6 +28,66 @@ public class FPgrowth
         mineFrequentItemsets(args, true, null); 
 	}
 	
+
+    	public static void mineFrequentItemsets(Iterator<Text> transactions, int numTransactions, float minFreqPercent, OutputCollector<Text,DoubleWritable> output)
+	{
+	  	long start_time, end_time;
+		double total_time; 
+		FPtree newFPtree = new FPtree(transactions, numTransactions, minFreqPercent);
+
+		start_time = System.currentTimeMillis(); 
+		//newFPtree.inputDataSet();
+		newFPtree.inputDataSetFromIterator();
+		end_time = System.currentTimeMillis();
+		total_time = newFPtree.twoDecPlaces((end_time - start_time) / 1000.0); 
+		//System.out.println("done (" + total_time + " seconds)");
+		
+		// Reorder and prune input data according to frequency of single attributes	
+		System.out.print("pruning items with low support..."); 
+		newFPtree.idInputDataOrdering();
+		newFPtree.recastInputDataAndPruneUnsupportedAtts(); 
+		newFPtree.setNumOneItemSets();
+		end_time = System.currentTimeMillis();
+		total_time = newFPtree.twoDecPlaces((end_time - start_time) / 1000.0); 
+		System.out.println("done (" + total_time + " seconds)");
+		//newFPtree.outputDataArray();
+		
+		
+        // Build initial FP-tree
+		System.out.print("building FP-tree..."); 
+		start_time = System.currentTimeMillis(); 
+		newFPtree.createFPtree();
+		end_time = System.currentTimeMillis();
+		total_time = ((end_time - start_time) / 1000.0); 
+		System.out.println("done (" + total_time + " seconds)");
+		//newFPtree.outputFPtreeStorage();			
+		//newFPtree.outputFPtree();
+		//newFPtree.outputItemPrefixSubtree();
+		
+		
+		// Mine FP-tree
+		System.out.print("mining FP-tree..."); 
+		start_time = System.currentTimeMillis(); 
+		newFPtree.startMining();
+		end_time = System.currentTimeMillis();
+		total_time = newFPtree.twoDecPlaces((end_time - start_time) / 1000.0); 
+		System.out.println("done (" + total_time + " seconds)");
+		
+		//newFPtree.outputFrequentSets(); 
+		//newFPtree.outputStorage(); 
+		//newFPtree.outputNumFreqSets(); 
+		//newFPtree.outputTtree(); // Frequent sets are stored in this structure
+		//newFPtree.outputRules();	
+		
+		if(output == null)
+		{
+		  System.out.println("ERROR: OutputCollector cannot be null in distributed mode"); 
+		  System.exit(1); 
+		}
+			//newFPtree.outputFrequentSets();
+		newFPtree.emitFrequentSets(output); 
+	}
+
 	/*
 	 Method: mineFrequentItemsets
 	 Description: 

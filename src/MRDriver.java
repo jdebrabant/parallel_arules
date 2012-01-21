@@ -106,6 +106,7 @@ public class MRDriver extends Configured implements Tool
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
 		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
+		conf.setInt("PARMM.sampleSize", sampleSize);
 		conf.setFloat("PARMM.epsilon", epsilon);
 			
 		conf.setNumReduceTasks(numSamples);

@@ -20,11 +20,13 @@ import fim.fpgrowth.*;
 public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
 	int minFreqPercent;
+	int sampleSize;
 
 	@Override
 	public void configure(JobConf conf) 
 	{
 		minFreqPercent = conf.getInt("PARMM.minFreqPercent", 20); 
+		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
 	}
 
 	@Override
@@ -32,48 +34,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
-		int count = 0; 
-		
-		BufferedWriter dat_out; 
-		String random_file; 
-		Random rand;
-		String transaction; 
-		
-		String [] args = new String[2]; 
-			
-		try 
-		{
-			// create random file name to write transaction data to
-			rand = new Random(); 
-			random_file = new String((new Integer(rand.nextInt(100000))).toString()); 
-			random_file += ".dat"; 
-			
-			// open file with random file name
-			dat_out = new BufferedWriter(new FileWriter(random_file)); 
-			
-			// iterate through key/value pairs and write out transaction, 1 per line
-			while (values.hasNext())
-			{
-				Text v = values.next();
-				transaction = v.toString(); 
-				
-				dat_out.write(transaction + "\n"); 
-			}
-			
-			dat_out.flush();
-			dat_out.close(); 
-			
-			// create command line arguments to pass to frequent itemset miner
-			args[0] = new String("-F" + random_file);			// arg for input file
-			args[1] = new String("-S" + minFreqPercent);	// arg for minimum support
-			
-			// mine frequent itemsets
-			FPgrowth.mineFrequentItemsets(args, false, output);
-		}
-		catch(Exception e)
-		{
-			System.out.println(e.getMessage()); 
-		}
+	  	FPgrowth.mineFrequentItemsets(values, sampleSize, minFreqPercent, output);
 	}
 }
 

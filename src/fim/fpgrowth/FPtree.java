@@ -25,6 +25,8 @@ package fim.fpgrowth;
 import java.io.*;
 import java.util.*;
 
+import org.apache.hadoop.io.Text;
+
 /** Implementation of Han's FP-growth ARM algorithm. 
  @author Frans Coenen
  @version 5 February 2003 */
@@ -196,6 +198,22 @@ public class FPtree extends TotalSupportTree {
 			headerTable[index] = new FPgrowthHeaderTable((short) index);
 	    }
 	}	
+
+     public FPtree(Iterator<Text> transactions, int numTransactions, float minFreqPercent) {
+		super(transactions, numTransactions, minFreqPercent);
+		
+		// Initialise root node
+		rootNode = new FPtreeNode();
+		
+		// Create header table	
+		headerTable = new FPgrowthHeaderTable[numOneItemSets+1];
+		
+		// Populate header table	
+		for (int index=1;index<headerTable.length;index++) {
+			headerTable[index] = new FPgrowthHeaderTable((short) index);
+	    }
+	}	
+
     
     /* ------ METHODS ------ */
     

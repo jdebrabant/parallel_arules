@@ -24,6 +24,8 @@ import java.util.*;
 // Java GUI packages
 //import javax.swing.*;
 
+import org.apache.hadoop.io.Text;
+
 /** Set of utillities to support various Association Rule Mining (ARM) 
  algorithms.
  @author Frans Coenen
@@ -90,7 +92,9 @@ public class AssocRuleMining {
     /** Command line argument for data file name. */
     protected String  fileName   = null;
 	
-	protected String output_file = null; 
+    protected String output_file = null; 
+
+    Iterator<Text> transactionsIterator = null;
 	
     /** Command line argument for number of columns. */
     protected int     numCols    = 0;
@@ -145,6 +149,16 @@ public class AssocRuleMining {
 		else outputMenu();
 	}
 	
+    public AssocRuleMining(Iterator<Text> transactions, int numTransactions, float minFreqPercent) {
+		
+		support = minFreqPercent;
+		numRows = numTransactions;
+		transactionsIterator = transactions;
+		
+    }
+
+
+
     /* ------ METHODS ------ */
 	
     /* ---------------------------------------------------------------- */
@@ -244,6 +258,31 @@ public class AssocRuleMining {
             errorFlag = false;
 	    }
 	}
+
+
+    public void inputDataSetFromIterator()
+    {
+      inputFormatOkFlag=true;
+      dataArray = new short[numRows][];
+
+      int rowIndex = 0;
+      String line = null;
+      while (transactionsIterator.hasNext()) {
+	line = transactionsIterator.next().toString();
+	// Process line
+	if (!processInputLine(line,rowIndex)) break;
+	// Increment first (row) index in 2-D data array
+	rowIndex++;
+      }
+
+      System.out.println("\tnumber of records: " + numRows);
+      countNumCols();
+      System.out.println("\tnumber of columns: " + numCols);
+      minSupport = (numRows * support)/100.0;
+      System.out.println("\tmin support (rows): " + twoDecPlaces(minSupport));
+    }
+
+
 	
     /* ---------------------------------------------------------------- */
     /*                                                                  */
