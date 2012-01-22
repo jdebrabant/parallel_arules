@@ -176,15 +176,18 @@ public class MRDriver extends Configured implements Tool
 
 			// for each key in the sample, create a list of all T samples to which this key belongs
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
+			LongWritable key = new LongWritable(0);
+			IntWritable sampleID = new IntWritable(0);
 			for (int i=0; i < numSamples * sampleSize; i++) 
 			{
 				ArrayList<IntWritable> sampleIDs = null;
-				LongWritable key = new LongWritable(samples[i]);
+				key.set(samples[i]);
 				if (hashTable.containsKey(key))  
 					sampleIDs = hashTable.get(key);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
-				sampleIDs.add(new IntWritable(i / sampleSize));
+				sampleID.set(i / sampleSize);
+				sampleIDs.add(sampleID);
 				hashTable.put(key, sampleIDs);
 			}
 
