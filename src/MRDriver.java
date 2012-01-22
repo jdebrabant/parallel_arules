@@ -77,11 +77,24 @@ public class MRDriver extends Configured implements Tool
 		
 		JobConf conf = new JobConf(getConf()); 
 
+		/*
+		 * This way of computing the number of samples (and the number
+		 * of reducers, is suggested in the MapReduce Tutorial
+		 * (https://hadoop.apache.org/common/docs/current/mapred_tutorial.html#Reducer)
+		 */
 		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
+
+		/*
+		 * Compute the number of required "votes" for an itemsets to be
+		 * declared frequent, and the confidency phi in the collection
+		 * of Itemsets computed in a single reducer.
+		 */
 		int reqApproxNum = 0;
 		double phi = 0.25;
 		double low = 0.0;
 		double top = 0.50;
+		/* Perform binary search, with an additioanl breaking condition
+		 * when reqApproxNum has reached the maximum it can get. */
 		while (low <= top)
 		{
 		  	phi = (low + top) / 2;
@@ -108,9 +121,12 @@ public class MRDriver extends Configured implements Tool
 		conf.setInt("PARMM.minFreqPercent", minFreqPercent);
 		conf.setInt("PARMM.sampleSize", sampleSize);
 		conf.setFloat("PARMM.epsilon", epsilon);
-			
+
+		// Set the number of reducers equal to the number of samples, to
+		// maximize parallelism. Required by our Partitioner.
 		conf.setNumReduceTasks(numSamples);
 
+		// XXX: why do we disable the speculative execution? MR
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
 
@@ -124,6 +140,7 @@ public class MRDriver extends Configured implements Tool
 
 		conf.setInputFormat(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.addInputPath(conf, new Path(args[7]));
+		// We write the collections found in a reducers as a SequenceFile 
 		conf.setOutputFormat(SequenceFileOutputFormat.class);
 		SequenceFileOutputFormat.setOutputPath(conf, new Path(args[8]));
 
@@ -158,8 +175,6 @@ public class MRDriver extends Configured implements Tool
 			}
 
 			// for each key in the sample, create a list of all T samples to which this key belongs
-			// XXX I wonder whether we could more efficiently create
-			// the MapWritable directly. MR
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
 			for (int i=0; i < numSamples * sampleSize; i++) 
 			{
@@ -173,6 +188,11 @@ public class MRDriver extends Configured implements Tool
 				hashTable.put(key, sampleIDs);
 			}
 
+			/*
+			 * Convert the Hastable to a MapWritable which we will
+			 * write to HDFS and distribute to all Mappers using
+			 * DistributedCache
+			 */
 			MapWritable map = new MapWritable();
 			for (LongWritable key : hashTable.keySet())
 			{
@@ -182,6 +202,7 @@ public class MRDriver extends Configured implements Tool
 				map.put(key, sampleIDsIAW);
 			}
 
+			// XXX: we never remove the file at the end of the execution. We probably should.
 			FileSystem fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
 			FSDataOutputStream out = fs.create(new Path("samplesMap.ser"), true);
 			map.write(out);
@@ -191,23 +212,26 @@ public class MRDriver extends Configured implements Tool
 		}
 		else
 		{
-			// NOT REACHED
+			System.err.println("Wrong Mapper ID. Can only be in [1,4]");
+			System.exit(1);
 		}
 		
-		// We don't use the default hash partitioner because we want to
-		// maximize the parallelism. That's why we also fix the number
-		// of reducers.
+		/*
+		 * We don't use the default hash partitioner because we want to
+		 * maximize the parallelism. That's why we also fix the number
+		 * of reducers.
+		 */
 		conf.setPartitionerClass(FIMPartitioner.class);
 
 		conf.setReducerClass(FIMReducer.class);
 			
-		job_start_time = System.currentTimeMillis(); 
+		job_start_time = System.nanoTime(); 
 		JobClient.runJob(conf);
-		job_end_time = System.currentTimeMillis(); 
+		job_end_time = System.nanoTime(); 
+
+		job_runtime = (job_end_time-job_start_time) / 1000000; 
 			
-		job_runtime = (job_end_time-job_start_time) / 1000; 
-			
-		System.out.println("local FIM runtime (seconds): " + job_runtime);	
+		System.out.println("local FIM runtime (milliseconds): " + job_runtime);	
 	
 		/************************ Job 2 (aggregation) Configuration ************************/
 		
@@ -218,6 +242,7 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setInt("PARMM.sampleSize", sampleSize);
 		confAggr.setFloat("PARMM.epsilon", epsilon);
 
+		// XXX: Why do we disable speculative execution? MR
 		confAggr.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		confAggr.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
 
@@ -237,13 +262,13 @@ public class MRDriver extends Configured implements Tool
 
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[9]));
 
-		job_start_time = System.currentTimeMillis(); 
+		job_start_time = System.nanoTime(); 
 		JobClient.runJob(confAggr);
-		job_end_time = System.currentTimeMillis(); 
+		job_end_time = System.nanoTime(); 
 			
-		job_runtime = (job_end_time-job_start_time) / 1000; 
+		job_runtime = (job_end_time-job_start_time) / 1000000; 
 			
-		System.out.println("aggregation runtime (seconds): " +
+		System.out.println("aggregation runtime (milliseconds): " +
 				job_runtime); 
 		 
 		return 0;
