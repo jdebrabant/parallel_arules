@@ -130,6 +130,14 @@ public class MRDriver extends Configured implements Tool
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", MR_TIMEOUT_MILLI); 
 
+		/* 
+		 * Enable compression of map output.
+		 * XXX: We do it for this job and not for the aggregation one because
+		 * each mapper there only print out one record for each itemset,
+		 * so there isn't much to compress, I'd say. MR
+		 */
+		conf.setBoolean("mapred.compress.map.output", true); 
+
 		conf.setJarByClass(MRDriver.class);
 			
 		conf.setMapOutputKeyClass(IntWritable.class); 
@@ -176,18 +184,15 @@ public class MRDriver extends Configured implements Tool
 
 			// for each key in the sample, create a list of all T samples to which this key belongs
 			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			LongWritable key = new LongWritable(0);
-			IntWritable sampleID = new IntWritable(0);
 			for (int i=0; i < numSamples * sampleSize; i++) 
 			{
 				ArrayList<IntWritable> sampleIDs = null;
-				key.set(samples[i]);
+				LongWritable key = new LongWritable(samples[i]);
 				if (hashTable.containsKey(key))  
 					sampleIDs = hashTable.get(key);
 				else
 					sampleIDs = new ArrayList<IntWritable>();
-				sampleID.set(i / sampleSize);
-				sampleIDs.add(sampleID);
+				sampleIDs.add(new IntWritable(i / sampleSize));
 				hashTable.put(key, sampleIDs);
 			}
 
