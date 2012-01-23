@@ -135,6 +135,10 @@ public class MRDriver extends Configured implements Tool
 		 * XXX: We do it for this job and not for the aggregation one because
 		 * each mapper there only print out one record for each itemset,
 		 * so there isn't much to compress, I'd say. MR
+		 *
+		 * XXX: We should use LZO compression because it's faster. We
+		 * should check whether it is the default for Amazon MapReduce.
+		 * MR
 		 */
 		conf.setBoolean("mapred.compress.map.output", true); 
 
