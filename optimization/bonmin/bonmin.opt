@@ -1,0 +1,3 @@
+bonmin.bb_log_level 4
+bonmin.algorithm B-BB
+print_level 6
