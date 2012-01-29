@@ -2,6 +2,6 @@
 param delta := 0.02;
 param epsilon := 0.02;
 param d := 20;
-param w := 105000;
-param M := 10000000;
+param w := 1050000;
+param M := 1000000000;
 

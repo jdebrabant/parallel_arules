@@ -14,17 +14,18 @@ param M >= w integer;			# maximum global sample size
 
 var T integer >= 2;			# number of samples
 
-var phi >= max(delta, exp(-(w*(epsilon^2))/2 +d)) <= 0.5 - 1e-6; # single sample confidence parameter
+var phi >= max(delta, exp(-(w*(epsilon^2))/2 +d)) <= 0.5-1e-6; # single sample confidence parameter
 # phi must be >= delta, and such that the sample size is less than w. phi must also be < 0.5.
 
 minimize samplesize:
-	T * ceil((2 / (epsilon^2)) * (d + log(1/phi)));
+	T*ceil((2/(epsilon^2))*(d+log(1/phi)));
 
 subject to
 	#Respect the maximum specified sample size M
-	maxSamSize: T * ceil((2 / (epsilon^2)) * (d + log(1/phi))) <= M;
+	maxSamSize: T*ceil((2/(epsilon^2))*(d+log(1/phi))) <= M;
 	# The number of "votes" R for a locally frequent itemset to be deemed
 	# globally frequent must be less than the expectation of the number of
-	# positive votes (T*(1-phi)).
-	Rconstr: max(floor(T/2)+1, T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) - T*(1-phi) <= - 1e-6;
+	# positive votes (T*(1-phi)) but at least floor(T/2)+1.
+	Rconstr1: floor(T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) <= T*(1-phi) -1e-6;
+	Rconstr2: floor(T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) >= floor(T/2) +1;
 
