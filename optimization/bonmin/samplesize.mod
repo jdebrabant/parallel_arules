@@ -24,8 +24,6 @@ subject to
 	#Respect the maximum specified sample size M
 	maxSamSize: T*ceil((2/(epsilon^2))*(d+log(1/phi))) <= M;
 	# The number of "votes" R for a locally frequent itemset to be deemed
-	# globally frequent must be less than the expectation of the number of
-	# positive votes (T*(1-phi)) but at least floor(T/2)+1.
-	Rconstr1: floor(T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) <= T*(1-phi) -1e-6;
-	Rconstr2: floor(T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) >= floor(T/2) +1;
+	# globally frequent must be at least floor(T/2)+1.
+	Rconstr: floor(T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) >= floor(T/2) +1;
 
