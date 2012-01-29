@@ -26,5 +26,5 @@ subject to
 	# The number of "votes" R for a locally frequent itemset to be deemed
 	# globally frequent must be less than the expectation of the number of
 	# positive votes (T*(1-phi)).
-	Rconstr: max(floor(T/2)+1, sqrt(T*(1-phi)*2*log(1/delta))) - T*(1-phi) <= - 1e-6;
+	Rconstr: max(floor(T/2)+1, T*(1-phi)-sqrt(T*(1-phi)*2*log(1/delta))) - T*(1-phi) <= - 1e-6;
 
