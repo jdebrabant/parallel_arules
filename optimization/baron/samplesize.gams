@@ -1,0 +1,44 @@
+* GAMS model for the computation of the optimal number of samples T and single
+* confidence parameter \phi.
+* The optimization problem is a MINLP (Mixed Integer Non Linear Program).
+* To be solved using the BARON solver.
+* BARON can be used through the NEOS server web interface at
+* http://www.neos-server.org/neos/solvers/minco:BARON/GAMS.html
+
+SCALAR delta global confidence /0.02/ ;
+SCALAR epsilon accuracy /0.02/ ;
+SCALAR d VC-dimension /10/ ;
+SCALAR w local size limit /120000/ ;
+SCALAR M global size limit /4000000/ ;
+
+VARIABLES
+	objval	global sample size 
+	T 	number of samples
+	phi	local confidence ;
+
+FREE VARIABLE objval ;
+INTEGER VARIABLE T ;
+POSITIVE VARIABLE phi ;
+
+T.lo	= 1 ;
+
+* phi must be >= delta, and such that the sample size is less than w. phi must
+* also be < 0.5, or T(1-phi) < T/2, which cannot happen.
+phi.lo	= MAX(delta, EXP(-(w*(epsilon**2))/2 +d)) ;
+phi.up	= 0.5;
+
+EQUATIONS
+	objfun		objective function (global sample size)
+	maxSampleSize	constraint on maximum sample size
+	Rconstr		constraint on number of votes;
+
+	objfun .. 	objval =e= T*(2/(epsilon**2))*(d+LOG(1/phi)) ;
+	maxSampleSize ..T*(2/(epsilon**2))*(d+LOG(1/phi)) =l= M;
+	Rconstr ..	T*(1-phi)-SQRT(T*(1-phi)*2*LOG(1/delta)) =g= T /2 + 1;
+
+MODEL samplesize /ALL/;
+
+	SOLVE samplesize USING MINLP MINIMIZING objval ;
+
+DISPLAY objval.l, T.l, phi.l ;
+
