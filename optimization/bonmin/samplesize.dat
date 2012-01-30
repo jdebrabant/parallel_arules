@@ -1,7 +1,7 @@
 # Data file for the AMPL model
-param delta := 0.02;
-param epsilon := 0.02;
-param d := 20;
-param w := 1050000;
-param M := 1000000000;
+param delta := 0.1;
+param epsilon := 0.1;
+param d := 2;
+param w := 10500000;
+param M := 100000000000;
 
