@@ -49,9 +49,9 @@ public class MRDriver extends Configured implements Tool
 	
 	public static void main(String args[]) throws Exception
 	{
-		if (args.length != 10)
+		if (args.length != 11)
 		{
-			System.out.println("usage: java MRDriver <epsilon> <delta> <minFreqPercent> <d> <datasetSize> <nodes> <mapper id> <path to input database> " + 
+			System.out.println("usage: java MRDriver <epsilon> <delta> <minFreqPercent> <d> <datasetSize> <numSamples> <phi> <mapper id> <path to input database> " + 
 							   "<path to output local FIs> <path to output global FIs>");
 			System.exit(1); 
 		}
@@ -70,50 +70,21 @@ public class MRDriver extends Configured implements Tool
 		int minFreqPercent = Integer.parseInt(args[2]);
 		int d = Integer.parseInt(args[3]);
 		int datasetSize = Integer.parseInt(args[4]);
-		int nodes = Integer.parseInt(args[5]);
+		int numSamples = Integer.parseInt(args[5]);
+		double phi = Double.parseDouble(args[6]);
 
 
 		/************************ Job 1 (local FIM) Configuration ************************/
 		
 		JobConf conf = new JobConf(getConf()); 
 
-		/*
-		 * This way of computing the number of samples (and the number
-		 * of reducers, is suggested in the MapReduce Tutorial
-		 * (https://hadoop.apache.org/common/docs/current/mapred_tutorial.html#Reducer)
-		 */
-		int numSamples = (int) Math.floor(0.95 * nodes * conf.getInt("mapred.tasktracker.reduce.tasks.maximum", nodes * 2));
 
 		/*
 		 * Compute the number of required "votes" for an itemsets to be
-		 * declared frequent, and the confidency phi in the collection
-		 * of Itemsets computed in a single reducer.
-		 */
-		int reqApproxNum = 0;
-		double phi = 0.25;
-		double low = 0.0;
-		double top = 0.50;
-		/* Perform binary search, with an additioanl breaking condition
-		 * when reqApproxNum has reached the maximum it can get. */
-		while (low <= top)
-		{
-		  	phi = (low + top) / 2;
-			reqApproxNum = (int) Math.ceil(Math.sqrt(numSamples*(1-phi)*2*Math.log(1/delta)) + 1);
-			reqApproxNum = Math.max(numSamples/2 +1, reqApproxNum);
-			if (reqApproxNum == Math.floor(numSamples*(1-phi)))
-			{
-			  	break;
-			}
-			if (reqApproxNum > numSamples*(1-phi))
-			{
-			  	top = phi;
-			}
-			if (reqApproxNum < numSamples*(1-phi))
-			{
-			  	low = phi;
-			}
-		}
-
+		 * declared frequent 		 */
+		int reqApproxNum = reqApproxNum = (int)
+			Math.floor(numSamples*(1-phi)-Math.sqrt(numSamples*(1-phi)*2*Math.log(1/delta))
+					+ 1);
 		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
 
 		conf.setInt("PARMM.reducersNum", numSamples);
@@ -151,29 +122,29 @@ public class MRDriver extends Configured implements Tool
 		conf.setOutputValueClass(DoubleWritable.class); 
 
 		conf.setInputFormat(SequenceFileInputFormat.class);
-		SequenceFileInputFormat.addInputPath(conf, new Path(args[7]));
+		SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 		// We write the collections found in a reducers as a SequenceFile 
 		conf.setOutputFormat(SequenceFileOutputFormat.class);
-		SequenceFileOutputFormat.setOutputPath(conf, new Path(args[8]));
+		SequenceFileOutputFormat.setOutputPath(conf, new Path(args[9]));
 
 		
 		// set the mapper class based on command line option
-		if(args[6].equals("1"))
+		if(args[7].equals("1"))
 		{
 			System.out.println("running partition mapper..."); 
 			conf.setMapperClass(PartitionMapper.class);
 		}
-		else if(args[6].equals("2"))
+		else if(args[7].equals("2"))
 		{
 			System.out.println("running binomial mapper..."); 
 			conf.setMapperClass(BinomialSamplerMapper.class);
 		}
-		else if(args[6].equals("3"))
+		else if(args[7].equals("3"))
 		{
 			System.out.println("running coin mapper..."); 
 			conf.setMapperClass(CoinFlipSamplerMapper.class);
 		}
-		else if(args[6].equals("4"))
+		else if(args[7].equals("4"))
 		{
 			System.out.println("running sampler mapper..."); 
 			conf.setMapperClass(InputSamplerMapper.class);
@@ -270,9 +241,9 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setReducerClass(AggregateReducer.class);
 			
 		confAggr.setInputFormat(SequenceFileInputFormat.class);
-		SequenceFileInputFormat.addInputPath(confAggr, new Path(args[8]));
+		SequenceFileInputFormat.addInputPath(confAggr, new Path(args[9]));
 
-		FileOutputFormat.setOutputPath(confAggr, new Path(args[9]));
+		FileOutputFormat.setOutputPath(confAggr, new Path(args[10]));
 
 		job_start_time = System.nanoTime(); 
 		JobClient.runJob(confAggr);

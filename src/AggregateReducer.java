@@ -55,40 +55,28 @@ public class AggregateReducer extends MapReduceBase
 
 			/**
 			 * Compute the smallest frequency interval containing
-			 * requiredNum estimates of the frequency of the
-			 * itemset. Use the center of this interval as global
-			 * estimate for the frequency. The confidence interval
-			 * is obtained by enlarging the above interval by
-			 * epsilon/2 on both sides.
+			 * reducersNum-requiredApproxNum+1 estimates of the
+			 * frequency of the itemset. Use the center of this
+			 * interval as global estimate for the frequency. The
+			 * confidence interval is obtained by enlarging the
+			 * above interval by epsilon/2 on both sides.
 			 */
-			double minIntervalLength = valuesArr[reqApproxNum - 1] - valuesArr[0];
+			double minIntervalLength = valuesArr[reducersNum-reqApproxNum] - valuesArr[0];
 			int startIndex = 0;
-			for (int i = 1; i < valuesArr.length - reqApproxNum; i++)
+			for (int i = 1; i < valuesArr.length - reducersNum + reqApproxNum; i++)
 			{
-				double intervalLength = valuesArr[reqApproxNum - 1 + i] - valuesArr[i];
+				double intervalLength = valuesArr[reducersNum-reqApproxNum + i] - valuesArr[i];
 				if (intervalLength < minIntervalLength) 
 				{
 					minIntervalLength = intervalLength;
 					startIndex = i;
 				}
 			}
-			int reqApproxNum2 = reducersNum - reqApproxNum + 1;
-			Double[] valuesSubArr = Arrays.copyOfRange(valuesArr, startIndex, startIndex + reqApproxNum -1);
-			minIntervalLength = valuesSubArr[reqApproxNum2 - 1] - valuesSubArr[0];
-			double estimatedFreq = valuesSubArr[0] + minIntervalLength / 2; 
-			for (int i = 1; i < valuesSubArr.length - reqApproxNum2; i++)
-			{
-				double intervalLength = valuesSubArr[reqApproxNum2 - 1 + i] - valuesSubArr[i];
-				if (intervalLength < minIntervalLength) 
-				{
-					minIntervalLength = intervalLength;
-					estimatedFreq = valuesSubArr[i] + minIntervalLength / 2; 
-				}
-			}
-
-			double confIntervalLowBound = (estimatedFreq - minIntervalLength / 2) / sampleSize - epsilon / 2;
-			double confIntervalUppBound = (estimatedFreq + minIntervalLength / 2) / sampleSize + epsilon / 2;
-			estimatedFreq = estimatedFreq / sampleSize;
+			
+			double estimatedFreq = (valuesArr[startIndex] + ((double) (valuesArr[startIndex + reducersNum -
+					 reqApproxNum] - valuesArr[startIndex])/2)) / sampleSize;
+			double confIntervalLowBound = Math.max(0, valuesArr[startIndex] / sampleSize - epsilon / 2);
+			double confIntervalUppBound = Math.min(1, valuesArr[startIndex + reducersNum - reqApproxNum] / sampleSize + epsilon / 2);
 			
 			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
 			output.collect(itemset, new Text(estFreqAndBoundsStr));
