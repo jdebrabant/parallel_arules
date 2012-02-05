@@ -1,7 +1,7 @@
-* GAMS model for the computation of the optimal number of samples T and single
-* confidence parameter \phi.
-* The optimization problem is a MINLP (Mixed Integer Non Linear Program).
-* To be solved using the BARON solver.
+* GAMS model for the computation of the optimal number of samples N and single
+* sample error probabilty parameter \phi.
+* The optimization problem is a MNLP (Mixed Integer Non Linear Program).
+* To be solved using BARON or any global MNLP solver.
 * BARON can be used through the NEOS server web interface at
 * http://www.neos-server.org/neos/solvers/minco:BARON/GAMS.html
 
