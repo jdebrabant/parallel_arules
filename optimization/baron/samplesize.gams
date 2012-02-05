@@ -1,7 +1,7 @@
 * GAMS model for the computation of the optimal number of samples N and single
-* sample error probabilty parameter phi.
+* sample error probabilty phi.
 * The optimization problem is a MNLP (Mixed Integer Non Linear Program).
-* To be solved using BARON or any global MNLP solver.
+* It can be solved using BARON or any global MNLP solver.
 * BARON can be used through the NEOS server web interface at
 * http://www.neos-server.org/neos/solvers/minco:BARON/GAMS.html
 
@@ -20,6 +20,7 @@ FREE VARIABLE objval ;
 INTEGER VARIABLE N ;
 POSITIVE VARIABLE phi ;
 
+* We want at least one sample.
 N.lo	= 1 ;
 
 * phi must be >= delta, and such that the local sample size is less than m. phi
