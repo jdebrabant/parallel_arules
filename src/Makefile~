@@ -2,7 +2,6 @@ all:
 	javac -classpath $(CLASSPATH):lib/colt.jar *.java
 	javac -classpath $(CLASSPATH):lib/colt.jar fim/fpgrowth/*.java
 	jar cvfm parallel.jar jar-manifest *.class fim/fpgrowth/*.class
-	jar cvfm converter.jar util/jar-manifest util/Txt2SeqConverter.class
 
 clean: 
 	rm *.class

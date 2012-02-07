@@ -1,15 +1,17 @@
 * GAMS model for the computation of the optimal number of samples N and single
 * sample error probabilty phi.
 * The optimization problem is a MNLP (Mixed Integer Non Linear Program).
-* It can be solved using BARON or any global MNLP solver.
+* It can be solved using BARON or any global MINLP solver.
 * BARON can be used through the NEOS server web interface at
 * http://www.neos-server.org/neos/solvers/minco:BARON/GAMS.html
+
+option minlp=baron;
 
 SCALAR delta global confidence /0.1/ ;
 SCALAR epsilon accuracy /0.02/ ;
 SCALAR d VC-dimension /2/ ;
 SCALAR m local sample size limit /16000/ ;
-SCALAR M global sample size limit /4000000/ ;
+SCALAR W global sample size limit /4000000/ ;
 
 VARIABLES
 	objval	global sample size 
@@ -34,7 +36,7 @@ EQUATIONS
 	Rconstr		constraint on number of votes;
 
 	objfun .. 	objval =e= N*(2/(epsilon**2))*(d+LOG(1/phi)) ;
-	maxSampleSize ..N*(2/(epsilon**2))*(d+LOG(1/phi)) =l= M;
+	maxSampleSize ..N*(2/(epsilon**2))*(d+LOG(1/phi)) =l= W ;
 	Rconstr ..	N*(1-phi)-SQRT(N*(1-phi)*2*LOG(1/delta)) =g= N /2 + 1;
 
 MODEL samplesize /ALL/;
