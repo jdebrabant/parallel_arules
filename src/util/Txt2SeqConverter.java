@@ -50,9 +50,13 @@ public class Txt2SeqConverter
 
 			  transactionID++;
 			}
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			System.out.println("ERROR: " + e.getMessage()); 
-		} finally {
+		} 
+		finally 
+		{
 		  	IOUtils.closeStream(writer);
 		}
 	}
