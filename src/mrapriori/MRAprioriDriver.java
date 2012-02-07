@@ -1,14 +1,11 @@
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.IdentityMapper;
-import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.KeyValueTextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -17,9 +14,9 @@ public class MRAprioriDriver extends Configured implements Tool
 		
 	public static void main(String args[]) throws Exception
 	{
-		if (args.length < 2)
+		if (args.length < 4)
 		{
-			System.out.println("usage: <path to input database> <path to output global FIs>");
+			System.out.println("usage: java MRAprioriDriver <minFreqPercent> <datasetSize> <path to input database> <path to output global FIs>");
 			System.exit(1); 
 		}
 
@@ -35,6 +32,11 @@ public class MRAprioriDriver extends Configured implements Tool
 		
 		JobConf conf = new JobConf(getConf()); 
 			
+		int minFreqPercent = Integer.parseInt(args[0]);
+		int datasetSize = Integer.parseInt(args[1]);
+		conf.setInt("MRAPRIORI.datasetSize", datasetSize);
+		conf.setInt("MRAPRIORI.minFreqPercent", minFreqPercent);
+
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", 60000000); 
 
@@ -44,14 +46,15 @@ public class MRAprioriDriver extends Configured implements Tool
 		conf.setMapOutputValueClass(IntWritable.class); 
 			
 		conf.setOutputKeyClass(Text.class); 
-		conf.setOutputValueClass(DoubleWritable.class); 
+		conf.setOutputValueClass(Text.class); 
 			
 		conf.setMapperClass(MRAprioriMapper.class);
 		conf.setCombinerClass(MRAprioriCombiner.class);
 		conf.setReducerClass(MRAprioriReducer.class);
 			
-		FileInputFormat.addInputPath(conf, new Path(args[0]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
+		conf.setInputFormat(SequenceFileInputFormat.class);
+		SequenceFileInputFormat.addInputPath(conf, new Path(args[2]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[3]));
 			
 		job_start_time = System.currentTimeMillis(); 
 		JobClient.runJob(conf);
