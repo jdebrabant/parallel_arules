@@ -4,17 +4,22 @@
 # usage: ./launch_pfp.sh <job number> <input> <output>
 
 elastic-mapreduce \
-    --j $1 \
+    --create \
+    --name "pfp" \
     --jar s3n://kdd12/mahout.jar \
-    --main-class org.apache.mahout.fpm.pfpgrowth.FPGrowthDriver \
+    --arg org.apache.mahout.fpm.pfpgrowth.FPGrowthDriver \
     --arg -i \
-    --arg $2 \
+    --arg s3n://kdd12/input/input_dat/5M \
     --arg -o \
-    --arg $3 \
+    --arg s3n://kdd12/output/pfp/5M \
     --arg -k \
-    --arg 100 \
+    --arg 1000 \
     --arg -method \
     --arg mapreduce \
     --arg -s \
     --arg 2 \
-
+    --log-uri s3n://kdd12/logs/pfp/ \
+    --num-instances 2 \
+    --instance-type m2.2xlarge \
+    --master-instance-type m2.2xlarge \
+    --bootstrap-action s3://elasticmapreduce/bootstrap-actions/configurations/latest/memory-intensive 

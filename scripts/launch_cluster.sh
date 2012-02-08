@@ -6,9 +6,9 @@
 elastic-mapreduce \
   --create \
   --alive \
-  --name "parmm" \
-  --log-uri s3n://kdd12/logs/ \
-  --num-instances $1 \
-  --instance-type m1.xlarge \
-  --master-instance-type m1.xlarge \
+  --name "pfp-test-cluster" \
+  --log-uri s3n://kdd12/logs/pfp/ \
+  --num-instances 2 \
+  --instance-type m2.2xlarge \
+  --master-instance-type m2.2xlarge \
   --bootstrap-action s3://elasticmapreduce/bootstrap-actions/configurations/latest/memory-intensive 
