@@ -7,11 +7,11 @@
 
 option minlp=baron;
 
-SCALAR delta global confidence /0.1/ ;
-SCALAR epsilon accuracy /0.02/ ;
-SCALAR d VC-dimension /2/ ;
-SCALAR m local sample size limit /16000/ ;
-SCALAR W global sample size limit /4000000/ ;
+SCALAR delta global confidence /0.01/ ;
+SCALAR epsilon accuracy /0.05/ ;
+SCALAR d VC-dimension /28/ ;
+SCALAR m local sample size limit /25000/ ;
+SCALAR W global sample size limit /5000000/ ;
 
 VARIABLES
 	objval	global sample size 
