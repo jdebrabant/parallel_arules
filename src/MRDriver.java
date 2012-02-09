@@ -133,79 +133,79 @@ public class MRDriver extends Configured implements Tool
 
 		
 		// set the mapper class based on command line option
-		if(args[7].equals("1"))
+		switch(Integer.parseInt(args[7]))
 		{
-			System.out.println("running partition mapper..."); 
-			conf.setMapperClass(PartitionMapper.class);
-		}
-		else if(args[7].equals("2"))
-		{
-			System.out.println("running binomial mapper..."); 
-			conf.setMapperClass(BinomialSamplerMapper.class);
-		}
-		else if(args[7].equals("3"))
-		{
-			System.out.println("running coin mapper..."); 
-			conf.setMapperClass(CoinFlipSamplerMapper.class);
-		}
-		else if(args[7].equals("4"))
-		{
-			System.out.println("running sampler mapper..."); 
-			conf.setMapperClass(InputSamplerMapper.class);
-			
-			// create a random sample of size T*m
-			job_start_time = System.nanoTime(); 
-			Random rand = new Random();
-			int[] samples = new int[numSamples * sampleSize];
-			for (int i = 0; i < numSamples * sampleSize; i++)
-			{
-				samples[i] = rand.nextInt(datasetSize);
-			}
+			case 1:
+				System.out.println("running partition mapper..."); 
+				conf.setMapperClass(PartitionMapper.class);
+				break;
+			case 2:
+				System.out.println("running binomial mapper..."); 
+				conf.setMapperClass(BinomialSamplerMapper.class);
+				break;
+			case 3:
+				System.out.println("running coin mapper..."); 
+				conf.setMapperClass(CoinFlipSamplerMapper.class);
+			case 4:
+				System.out.println("running sampler mapper..."); 
+				conf.setMapperClass(InputSamplerMapper.class);
 
-			// for each key in the sample, create a list of all T samples to which this key belongs
-			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			for (int i=0; i < numSamples * sampleSize; i++) 
-			{
-				ArrayList<IntWritable> sampleIDs = null;
-				LongWritable key = new LongWritable(samples[i]);
-				if (hashTable.containsKey(key))  
-					sampleIDs = hashTable.get(key);
-				else
-					sampleIDs = new ArrayList<IntWritable>();
-				sampleIDs.add(new IntWritable(i / sampleSize));
-				hashTable.put(key, sampleIDs);
-			}
+				// create a random sample of size T*m
+				job_start_time = System.nanoTime(); 
+				Random rand = new Random();
+				int[] samples = new int[numSamples * sampleSize];
+				for (int i = 0; i < numSamples * sampleSize; i++)
+				{
+					samples[i] = rand.nextInt(datasetSize);
+				}
 
-			/*
-			 * Convert the Hastable to a MapWritable which we will
-			 * write to HDFS and distribute to all Mappers using
-			 * DistributedCache
-			 */
-			MapWritable map = new MapWritable();
-			for (LongWritable key : hashTable.keySet())
-			{
-			  	ArrayList<IntWritable> sampleIDs = hashTable.get(key);
-				IntArrayWritable sampleIDsIAW = new IntArrayWritable();
-				sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[sampleIDs.size()]));
-				map.put(key, sampleIDsIAW);
-			}
+				// for each key in the sample, create a list of all T samples to which this key belongs
+				Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
+				for (int i=0; i < numSamples * sampleSize; i++) 
+				{
+					ArrayList<IntWritable> sampleIDs = null;
+					LongWritable key = new LongWritable(samples[i]);
+					if (hashTable.containsKey(key))  
+						sampleIDs = hashTable.get(key);
+					else
+						sampleIDs = new ArrayList<IntWritable>();
+					sampleIDs.add(new IntWritable(i / sampleSize));
+					hashTable.put(key, sampleIDs);
+				}
 
-			fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
-			samplesMapPath = new Path("samplesMap.ser");
-			FSDataOutputStream out = fs.create(samplesMapPath, true);
-			map.write(out);
-			out.sync();
-			out.close();
-			DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
-			// stop the sampling timer	
-			job_end_time = System.nanoTime(); 
-			job_runtime = (job_end_time-job_start_time) / 1000000; 
-			System.out.println("sampling runtime (milliseconds): " + job_runtime);	
-		}
-		else
-		{
-			System.err.println("Wrong Mapper ID. Can only be in [1,4]");
-			System.exit(1);
+				/*
+				 * Convert the Hastable to a MapWritable which we will
+				 * write to HDFS and distribute to all Mappers using
+				 * DistributedCache
+				 */
+				MapWritable map = new MapWritable();
+				for (LongWritable key : hashTable.keySet())
+				{
+					ArrayList<IntWritable> sampleIDs = hashTable.get(key);
+					IntArrayWritable sampleIDsIAW = new IntArrayWritable();
+					sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[sampleIDs.size()]));
+					map.put(key, sampleIDsIAW);
+				}
+
+				fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
+				samplesMapPath = new Path("samplesMap.ser");
+				FSDataOutputStream out = fs.create(samplesMapPath, true);
+				map.write(out);
+				out.sync();
+				out.close();
+				DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
+				// stop the sampling timer	
+				job_end_time = System.nanoTime(); 
+				job_runtime = (job_end_time-job_start_time) / 1000000; 
+				System.out.println("sampling runtime (milliseconds): " + job_runtime);	
+				break; // end switch case
+			case 5:
+				// XXX TODO
+				break;
+			default:
+				System.err.println("Wrong Mapper ID. Can only be in [1,5]");
+				System.exit(1);
+				break;
 		}
 		
 		/*
