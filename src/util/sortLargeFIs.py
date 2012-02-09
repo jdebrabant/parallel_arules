@@ -16,9 +16,10 @@ def main():
     results = []
     with open(fileName) as FILE:
         for line in FILE:
-            tokens = line.split("\t")
-            frequency = float(tokens[1])
-            results.append((line, frequency))
+            tokens = line.split("}")
+            itemset = tokens[0][1:-1]
+            frequency = float((tokens[1].split(" "))[0][2:-3])
+            results.append((itemset + "\t" + str(frequency)+"\n", frequency))
 
     results.sort(key=itemgetter(1), reverse=True)
 
