@@ -63,6 +63,9 @@ public class MRDriver extends Configured implements Tool
 
 	public int run(String args[]) throws Exception
 	{
+		FileSystem fs = null;
+		Path samplesMapPath = null;
+
 		long job_start_time, job_end_time; 
 		long job_runtime; 
 		float epsilon = Float.parseFloat(args[0]);
@@ -103,7 +106,8 @@ public class MRDriver extends Configured implements Tool
 
 		/* 
 		 * Enable compression of map output.
-		 * XXX: We do it for this job and not for the aggregation one because
+		 *
+		 * We do it for this job and not for the aggregation one because
 		 * each mapper there only print out one record for each itemset,
 		 * so there isn't much to compress, I'd say. MR
 		 *
@@ -185,9 +189,9 @@ public class MRDriver extends Configured implements Tool
 				map.put(key, sampleIDsIAW);
 			}
 
-			// XXX: we never remove the file at the end of the execution. We probably should.
-			FileSystem fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
-			FSDataOutputStream out = fs.create(new Path("samplesMap.ser"), true);
+			fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
+			samplesMapPath = new Path("samplesMap.ser");
+			FSDataOutputStream out = fs.create(samplesMapPath, true);
 			map.write(out);
 			out.sync();
 			out.close();
@@ -253,7 +257,10 @@ public class MRDriver extends Configured implements Tool
 			
 		System.out.println("aggregation runtime (milliseconds): " +
 				job_runtime); 
-		 
+
+		// Remove samplesMap file 
+		fs.delete(samplesMapPath, false);
+
 		return 0;
 	}
 }
