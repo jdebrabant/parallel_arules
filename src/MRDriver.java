@@ -154,6 +154,7 @@ public class MRDriver extends Configured implements Tool
 			conf.setMapperClass(InputSamplerMapper.class);
 			
 			// create a random sample of size T*m
+			job_start_time = System.nanoTime(); 
 			Random rand = new Random();
 			int[] samples = new int[numSamples * sampleSize];
 			for (int i = 0; i < numSamples * sampleSize; i++)
@@ -196,6 +197,10 @@ public class MRDriver extends Configured implements Tool
 			out.sync();
 			out.close();
 			DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
+			// stop the sampling timer	
+			job_end_time = System.nanoTime(); 
+			job_runtime = (job_end_time-job_start_time) / 1000000; 
+			System.out.println("sampling runtime (milliseconds): " + job_runtime);	
 		}
 		else
 		{
