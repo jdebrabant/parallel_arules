@@ -26,6 +26,7 @@ import java.util.Random;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -199,8 +200,20 @@ public class MRDriver extends Configured implements Tool
 				job_runtime = (job_end_time-job_start_time) / 1000000; 
 				System.out.println("sampling runtime (milliseconds): " + job_runtime);	
 				break; // end switch case
-			case 5:
-				// XXX TODO
+			case 5:	
+				System.out.println("running random integer partition mapper..."); 
+				conf.setMapperClass(RandIntPartSamplerMapper.class);
+				// Compute number of map tasks.
+				Path inputFilePath = new Path(args[9]);
+				fs = inputFilePath.getFileSystem(conf);
+				FileStatus inputFileStatus = fs.getFileStatus(inputFilePath);
+				long len = inputFileStatus.getLen();
+				long blockSize = inputFileStatus.getBlockSize();
+				long mapTasksNum = (len / blockSize) + 1;
+				// TODO 2) Extract random integer partition of total sample
+				// size into up to mapTasksNum partitions.
+				// TODO 3) Set values in conf for mappers to know how
+				// much to sample.
 				break;
 			default:
 				System.err.println("Wrong Mapper ID. Can only be in [1,5]");
@@ -263,8 +276,10 @@ public class MRDriver extends Configured implements Tool
 		System.out.println("aggregation runtime (milliseconds): " +
 				job_runtime); 
 
-		// Remove samplesMap file 
-		fs.delete(samplesMapPath, false);
+		if (args[7].equals("4")) {
+			// Remove samplesMap file 
+			fs.delete(samplesMapPath, false);
+		}
 
 		return 0;
 	}
