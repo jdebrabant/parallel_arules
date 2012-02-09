@@ -26,6 +26,7 @@ import java.util.Random;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -63,6 +64,9 @@ public class MRDriver extends Configured implements Tool
 
 	public int run(String args[]) throws Exception
 	{
+		FileSystem fs = null;
+		Path samplesMapPath = null;
+
 		long job_start_time, job_end_time; 
 		long job_runtime; 
 		float epsilon = Float.parseFloat(args[0]);
@@ -103,7 +107,8 @@ public class MRDriver extends Configured implements Tool
 
 		/* 
 		 * Enable compression of map output.
-		 * XXX: We do it for this job and not for the aggregation one because
+		 *
+		 * We do it for this job and not for the aggregation one because
 		 * each mapper there only print out one record for each itemset,
 		 * so there isn't much to compress, I'd say. MR
 		 *
@@ -129,74 +134,91 @@ public class MRDriver extends Configured implements Tool
 
 		
 		// set the mapper class based on command line option
-		if(args[7].equals("1"))
+		switch(Integer.parseInt(args[7]))
 		{
-			System.out.println("running partition mapper..."); 
-			conf.setMapperClass(PartitionMapper.class);
-		}
-		else if(args[7].equals("2"))
-		{
-			System.out.println("running binomial mapper..."); 
-			conf.setMapperClass(BinomialSamplerMapper.class);
-		}
-		else if(args[7].equals("3"))
-		{
-			System.out.println("running coin mapper..."); 
-			conf.setMapperClass(CoinFlipSamplerMapper.class);
-		}
-		else if(args[7].equals("4"))
-		{
-			System.out.println("running sampler mapper..."); 
-			conf.setMapperClass(InputSamplerMapper.class);
-			
-			// create a random sample of size T*m
-			Random rand = new Random();
-			int[] samples = new int[numSamples * sampleSize];
-			for (int i = 0; i < numSamples * sampleSize; i++)
-			{
-				samples[i] = rand.nextInt(datasetSize);
-			}
+			case 1:
+				System.out.println("running partition mapper..."); 
+				conf.setMapperClass(PartitionMapper.class);
+				break;
+			case 2:
+				System.out.println("running binomial mapper..."); 
+				conf.setMapperClass(BinomialSamplerMapper.class);
+				break;
+			case 3:
+				System.out.println("running coin mapper..."); 
+				conf.setMapperClass(CoinFlipSamplerMapper.class);
+			case 4:
+				System.out.println("running sampler mapper..."); 
+				conf.setMapperClass(InputSamplerMapper.class);
 
-			// for each key in the sample, create a list of all T samples to which this key belongs
-			Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
-			for (int i=0; i < numSamples * sampleSize; i++) 
-			{
-				ArrayList<IntWritable> sampleIDs = null;
-				LongWritable key = new LongWritable(samples[i]);
-				if (hashTable.containsKey(key))  
-					sampleIDs = hashTable.get(key);
-				else
-					sampleIDs = new ArrayList<IntWritable>();
-				sampleIDs.add(new IntWritable(i / sampleSize));
-				hashTable.put(key, sampleIDs);
-			}
+				// create a random sample of size T*m
+				job_start_time = System.nanoTime(); 
+				Random rand = new Random();
+				int[] samples = new int[numSamples * sampleSize];
+				for (int i = 0; i < numSamples * sampleSize; i++)
+				{
+					samples[i] = rand.nextInt(datasetSize);
+				}
 
-			/*
-			 * Convert the Hastable to a MapWritable which we will
-			 * write to HDFS and distribute to all Mappers using
-			 * DistributedCache
-			 */
-			MapWritable map = new MapWritable();
-			for (LongWritable key : hashTable.keySet())
-			{
-			  	ArrayList<IntWritable> sampleIDs = hashTable.get(key);
-				IntArrayWritable sampleIDsIAW = new IntArrayWritable();
-				sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[sampleIDs.size()]));
-				map.put(key, sampleIDsIAW);
-			}
+				// for each key in the sample, create a list of all T samples to which this key belongs
+				Hashtable<LongWritable, ArrayList<IntWritable>> hashTable = new Hashtable<LongWritable, ArrayList<IntWritable>>();
+				for (int i=0; i < numSamples * sampleSize; i++) 
+				{
+					ArrayList<IntWritable> sampleIDs = null;
+					LongWritable key = new LongWritable(samples[i]);
+					if (hashTable.containsKey(key))  
+						sampleIDs = hashTable.get(key);
+					else
+						sampleIDs = new ArrayList<IntWritable>();
+					sampleIDs.add(new IntWritable(i / sampleSize));
+					hashTable.put(key, sampleIDs);
+				}
 
-			// XXX: we never remove the file at the end of the execution. We probably should.
-			FileSystem fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
-			FSDataOutputStream out = fs.create(new Path("samplesMap.ser"), true);
-			map.write(out);
-			out.sync();
-			out.close();
-			DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
-		}
-		else
-		{
-			System.err.println("Wrong Mapper ID. Can only be in [1,4]");
-			System.exit(1);
+				/*
+				 * Convert the Hastable to a MapWritable which we will
+				 * write to HDFS and distribute to all Mappers using
+				 * DistributedCache
+				 */
+				MapWritable map = new MapWritable();
+				for (LongWritable key : hashTable.keySet())
+				{
+					ArrayList<IntWritable> sampleIDs = hashTable.get(key);
+					IntArrayWritable sampleIDsIAW = new IntArrayWritable();
+					sampleIDsIAW.set(sampleIDs.toArray(new IntWritable[sampleIDs.size()]));
+					map.put(key, sampleIDsIAW);
+				}
+
+				fs = FileSystem.get(URI.create("samplesMap.ser"), conf);
+				samplesMapPath = new Path("samplesMap.ser");
+				FSDataOutputStream out = fs.create(samplesMapPath, true);
+				map.write(out);
+				out.sync();
+				out.close();
+				DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
+				// stop the sampling timer	
+				job_end_time = System.nanoTime(); 
+				job_runtime = (job_end_time-job_start_time) / 1000000; 
+				System.out.println("sampling runtime (milliseconds): " + job_runtime);	
+				break; // end switch case
+			case 5:	
+				System.out.println("running random integer partition mapper..."); 
+				conf.setMapperClass(RandIntPartSamplerMapper.class);
+				// Compute number of map tasks.
+				Path inputFilePath = new Path(args[9]);
+				fs = inputFilePath.getFileSystem(conf);
+				FileStatus inputFileStatus = fs.getFileStatus(inputFilePath);
+				long len = inputFileStatus.getLen();
+				long blockSize = inputFileStatus.getBlockSize();
+				long mapTasksNum = (len / blockSize) + 1;
+				// TODO 2) Extract random integer partition of total sample
+				// size into up to mapTasksNum partitions.
+				// TODO 3) Set values in conf for mappers to know how
+				// much to sample.
+				break;
+			default:
+				System.err.println("Wrong Mapper ID. Can only be in [1,5]");
+				System.exit(1);
+				break;
 		}
 		
 		/*
@@ -253,7 +275,12 @@ public class MRDriver extends Configured implements Tool
 			
 		System.out.println("aggregation runtime (milliseconds): " +
 				job_runtime); 
-		 
+
+		if (args[7].equals("4")) {
+			// Remove samplesMap file 
+			fs.delete(samplesMapPath, false);
+		}
+
 		return 0;
 	}
 }
