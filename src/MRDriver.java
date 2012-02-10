@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -76,6 +77,7 @@ public class MRDriver extends Configured implements Tool
 		int datasetSize = Integer.parseInt(args[4]);
 		int numSamples = Integer.parseInt(args[5]);
 		double phi = Double.parseDouble(args[6]);
+		Random rand;
 
 
 		/************************ Job 1 (local FIM) Configuration ************************/
@@ -127,7 +129,6 @@ public class MRDriver extends Configured implements Tool
 		conf.setOutputValueClass(DoubleWritable.class); 
 
 		conf.setInputFormat(SequenceFileInputFormat.class);
-		SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 		// We write the collections found in a reducers as a SequenceFile 
 		conf.setOutputFormat(SequenceFileOutputFormat.class);
 		SequenceFileOutputFormat.setOutputPath(conf, new Path(args[9]));
@@ -138,22 +139,26 @@ public class MRDriver extends Configured implements Tool
 		{
 			case 1:
 				System.out.println("running partition mapper..."); 
+				SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 				conf.setMapperClass(PartitionMapper.class);
 				break;
 			case 2:
 				System.out.println("running binomial mapper..."); 
+				SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 				conf.setMapperClass(BinomialSamplerMapper.class);
 				break;
 			case 3:
 				System.out.println("running coin mapper..."); 
+				SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 				conf.setMapperClass(CoinFlipSamplerMapper.class);
 			case 4:
 				System.out.println("running sampler mapper..."); 
+				SequenceFileInputFormat.addInputPath(conf, new Path(args[8]));
 				conf.setMapperClass(InputSamplerMapper.class);
 
 				// create a random sample of size T*m
+				rand = new Random();
 				job_start_time = System.nanoTime(); 
-				Random rand = new Random();
 				int[] samples = new int[numSamples * sampleSize];
 				for (int i = 0; i < numSamples * sampleSize; i++)
 				{
@@ -202,18 +207,51 @@ public class MRDriver extends Configured implements Tool
 				break; // end switch case
 			case 5:	
 				System.out.println("running random integer partition mapper..."); 
+				conf.setInputFormat(WholeSplitInputFormat.class);
+				Path inputFilePath = new Path(args[8]);
+				WholeSplitInputFormat.addInputPath(conf, inputFilePath);
 				conf.setMapperClass(RandIntPartSamplerMapper.class);
 				// Compute number of map tasks.
-				Path inputFilePath = new Path(args[9]);
+				// XXX I hope this is correct =)
 				fs = inputFilePath.getFileSystem(conf);
 				FileStatus inputFileStatus = fs.getFileStatus(inputFilePath);
 				long len = inputFileStatus.getLen();
 				long blockSize = inputFileStatus.getBlockSize();
-				long mapTasksNum = (len / blockSize) + 1;
+				conf.setInt("mapred.min.split.size", (int) blockSize);
+				int mapTasksNum = ((int) (len / blockSize)) + 1;
 				// TODO 2) Extract random integer partition of total sample
 				// size into up to mapTasksNum partitions.
-				// TODO 3) Set values in conf for mappers to know how
-				// much to sample.
+				// XXX I'm not sure this is a correct way to do
+				// it.
+				rand = new Random();
+				int sum = 0;
+				int i = 0;
+				IntWritable[] toSampleArr = new IntWritable[mapTasksNum];
+				for (i = 0; i < mapTasksNum -1; i++) 
+				{
+					int size = rand.nextInt(numSamples * sampleSize - sum);
+					toSampleArr[i]= new IntWritable(size);
+					sum += size;
+					if (sum >= numSamples * sampleSize)
+					{
+						break;
+					}
+				}
+				if (i == mapTasksNum -1) 
+				{
+					toSampleArr[i] = new IntWritable(numSamples * sampleSize - sum);
+				}
+				else 
+				{
+					for (; i < mapTasksNum; i++)
+					{
+						toSampleArr[i] = new IntWritable(0); 
+					}
+				}
+				Collections.shuffle(Arrays.asList(toSampleArr));
+				
+				DefaultStringifier.storeArray(conf, toSampleArr, "PARMM.toSampleArr");
+
 				break;
 			default:
 				System.err.println("Wrong Mapper ID. Can only be in [1,5]");

@@ -34,7 +34,22 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
-	  	FPgrowth.mineFrequentItemsets(values, sampleSize, minFreqPercent, output);
+		// This is a very crappy way of checking whether we got the
+		// right number of transactions. It may not be too inefficient
+		// though.
+		ArrayList<Text> transactions = new ArrayList<Text>();
+		while (values.hasNext())
+		{
+			transactions.add(values.next());
+		}
+		if (sampleSize != transactions.size())
+		{
+			System.out.println("WRONG NUMBER OF TRANSACTIONS!");
+			System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
+		}
+	  	//FPgrowth.mineFrequentItemsets(values, sampleSize, minFreqPercent, output);
+	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent, output);
+		
 	}
 }
 
