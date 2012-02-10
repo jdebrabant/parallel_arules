@@ -21,12 +21,14 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 {
 	int minFreqPercent;
 	int sampleSize;
+	float epsilon;
 
 	@Override
 	public void configure(JobConf conf) 
 	{
 		minFreqPercent = conf.getInt("PARMM.minFreqPercent", 20); 
 		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
+		epsilon = conf.getFloat("PARMM.epsilon", 0.05f);
 	}
 
 	@Override
@@ -47,8 +49,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			System.out.println("WRONG NUMBER OF TRANSACTIONS!");
 			System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
 		}
-	  	//FPgrowth.mineFrequentItemsets(values, sampleSize, minFreqPercent, output);
-	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent, output);
+	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent - (epsilon * 50) , output);
 		
 	}
 }
