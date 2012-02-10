@@ -232,7 +232,12 @@ public class MRDriver extends Configured implements Tool
 					int size = rand.nextInt(numSamples * sampleSize - sum);
 					toSampleArr[i]= new IntWritable(size);
 					sum += size;
-					if (sum >= numSamples * sampleSize)
+					if (sum > numSamples * sampleSize)
+					{
+						System.out.println("Something went wrong generating the sample Sizes");
+						System.exit(1);
+					}
+					if (sum == numSamples * sampleSize)
 					{
 						break;
 					}
