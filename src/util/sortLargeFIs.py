@@ -15,6 +15,7 @@ def main():
 
     results = []
     with open(fileName) as FILE:
+        FILE.readline()
         for line in FILE:
             tokens = line.split("}")
             itemset = tokens[0][1:-1]
