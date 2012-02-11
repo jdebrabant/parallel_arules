@@ -93,6 +93,9 @@ def main():
     relativeErrorSum = 0.0
     wrongEps = 0
     wrongConfBounds = 0
+    wrongConfBounds2 = 0
+    maxCBSize = 0.0;
+    avgCBSizeSum = 0.0;
     for itemset in intersection | acceptableFalsePositives:
         sampleFreq = sampleRes[itemset]
         largeFreq = extendedLargeRes[itemset]
@@ -102,25 +105,34 @@ def main():
             maxAbsoluteError = absoluteError
         if absoluteError > epsilon:
             wrongEps = wrongEps + 1
+        CBSize = sampleRes2[itemset][2] - sampleRes2[itemset][1]
+        avgCBSizeSum = avgCBSizeSum + CBSize
+        if CBSize > maxCBSize:
+            maxCBSize = CBSize
         if largeFreq > sampleRes2[itemset][2] or largeFreq < sampleRes2[itemset][1]:
             wrongConfBounds = wrongConfBounds + 1
+        if CBSize > 2*epsilon:
+            wrongConfBounds2 = wrongConfBounds2 + 1
         relativeErrorSum += absoluteError / largeFreq
 
     avgAbsoluteError = absoluteErrorSum / (len(intersection) + len(acceptableFalsePositives))
     avgRelativeError = relativeErrorSum / (len(intersection) + len(acceptableFalsePositives))
+
+    avgCBSize = avgCBSizeSum / (len(intersection) + len(acceptableFalsePositives))
 
     print("large={},sample={},e={},minFreq={},largeFIs={}".format(os.path.basename(largeResFileName),
         os.path.basename(sampleResFileName), epsilon, minFreq, len(largeResSet)))
     print("inter={},fn={},fp={},nafp={},jaccard={}".format(len(intersection),
         len(falseNegatives), len(falsePositives),
         len(nonAcceptableFalsePositives), jaccard))
-    print("we={},wcb={},maxabserr={},avgabserr={},avgrelerr={}".format(wrongEps,wrongConfBounds,
+    print("we={},maxabserr={},avgabserr={},avgrelerr={}".format(wrongEps,
         maxAbsoluteError, avgAbsoluteError, avgRelativeError))
-    sys.stderr.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(os.path.basename(largeResFileName),
+    print("wcb={},wcb2={},maxcbsize={},avgcbsize={}".format(wrongConfBounds, wrongConfBounds2, maxCBSize, avgCBSize));
+    sys.stderr.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(os.path.basename(largeResFileName),
         os.path.basename(sampleResFileName), epsilon, minFreq,len(largeResSet),
         len(intersection), len(falseNegatives), len(falsePositives),
-        len(nonAcceptableFalsePositives), jaccard, wrongEps, wrongConfBounds, maxAbsoluteError,
-        avgAbsoluteError, avgRelativeError))
+        len(nonAcceptableFalsePositives), jaccard, wrongEps, maxAbsoluteError,
+        avgAbsoluteError, avgRelativeError, wrongConfBounds, wrongConfBounds2, maxCBSize, avgCBSize))
 
 if __name__ == "__main__":
     main()
