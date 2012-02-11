@@ -47,8 +47,8 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		if (sampleSize != transactions.size())
 		{
 			System.out.println("WRONG NUMBER OF TRANSACTIONS!");
-			System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
 		}
+		System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
 	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent - (epsilon * 50) , output);
 		
 	}

@@ -11,7 +11,7 @@ public class FIMPartitioner implements Partitioner<IntWritable, Text> {
 	@Override
 	public int getPartition(IntWritable key, Text value, int numPartitions) 
 	{
-		return (int)key.get();
+		return key.get();
 	}
 }
 

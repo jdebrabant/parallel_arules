@@ -26,6 +26,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 			IntWritable [] toSampleArr = DefaultStringifier.loadArray(conf, "PARMM.toSampleArr", IntWritable.class);
 			int id = conf.getInt("mapred.task.partition", -1);
 			toSample = toSampleArr[id].get();
+			System.out.println(toSample);
 		}
 		catch (IOException e) {} 
 	}

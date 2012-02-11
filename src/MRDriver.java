@@ -175,7 +175,7 @@ public class MRDriver extends Configured implements Tool
 						sampleIDs = hashTable.get(key);
 					else
 						sampleIDs = new ArrayList<IntWritable>();
-					sampleIDs.add(new IntWritable(i / sampleSize));
+					sampleIDs.add(new IntWritable(i % numSamples));
 					hashTable.put(key, sampleIDs);
 				}
 
