@@ -25,8 +25,9 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 		{
 			IntWritable [] toSampleArr = DefaultStringifier.loadArray(conf, "PARMM.toSampleArr", IntWritable.class);
 			int id = conf.getInt("mapred.task.partition", -1);
+			System.out.println("id: " + id);
 			toSample = toSampleArr[id].get();
-			System.out.println(toSample);
+			System.out.println("toSample: " + toSample);
 		}
 		catch (IOException e) {} 
 	}
@@ -39,6 +40,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 		Random rand = new Random();
 		Writable[] transactions = transactionsArrWr.get();
 		int transactionsNum = transactions.length;
+		System.out.println("transactionsNum: " + transactionsNum);
 		for (int i = 0; i < toSample; i++)
 		{
 			int sampledIndex = rand.nextInt(transactionsNum);

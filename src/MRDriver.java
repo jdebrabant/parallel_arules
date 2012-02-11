@@ -219,6 +219,9 @@ public class MRDriver extends Configured implements Tool
 				long blockSize = inputFileStatus.getBlockSize();
 				conf.setInt("mapred.min.split.size", (int) blockSize);
 				int mapTasksNum = ((int) (len / blockSize)) + 1;
+				conf.setNumMapTasks(mapTasksNum);
+				System.out.println("len: " + len + " blockSize: " 
+						+ blockSize + " mapTasksNum: " + mapTasksNum);
 				// Extract random integer partition of total sample
 				// size into up to mapTasksNum partitions.
 				// XXX I'm not sure this is a correct way to do

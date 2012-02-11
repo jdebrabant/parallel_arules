@@ -36,6 +36,9 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
+		int id = conf.getInt("mapred.task.partition", -1);
+		System.out.println("id: " + id + " key: " + key.get());
+
 		// This is a very crappy way of checking whether we got the
 		// right number of transactions. It may not be too inefficient
 		// though.
