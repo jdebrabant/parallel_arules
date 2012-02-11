@@ -21,6 +21,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 {
 	int minFreqPercent;
 	int sampleSize;
+	int id;
 	float epsilon;
 
 	@Override
@@ -29,6 +30,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		minFreqPercent = conf.getInt("PARMM.minFreqPercent", 20); 
 		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
 		epsilon = conf.getFloat("PARMM.epsilon", 0.05f);
+		id = conf.getInt("mapred.task.partition", -1);
 	}
 
 	@Override
@@ -36,7 +38,6 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
-		int id = conf.getInt("mapred.task.partition", -1);
 		System.out.println("id: " + id + " key: " + key.get());
 
 		// This is a very crappy way of checking whether we got the
