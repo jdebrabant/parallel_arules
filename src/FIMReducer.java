@@ -43,10 +43,11 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		// This is a very crappy way of checking whether we got the
 		// right number of transactions. It may not be too inefficient
 		// though.
-		ArrayList<Text> transactions = new ArrayList<Text>();
+		ArrayList<Text> transactions = new ArrayList<Text>(sampleSize);
 		while (values.hasNext())
 		{
-			transactions.add(values.next());
+			Text trans = new Text(values.next().toString());
+			transactions.add(trans);
 		}
 		if (sampleSize != transactions.size())
 		{

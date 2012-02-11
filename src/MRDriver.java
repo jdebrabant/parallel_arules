@@ -87,11 +87,12 @@ public class MRDriver extends Configured implements Tool
 
 		/*
 		 * Compute the number of required "votes" for an itemsets to be
-		 * declared frequent 		 */
-		int reqApproxNum = reqApproxNum = (int)
-			Math.floor(numSamples*(1-phi)-Math.sqrt(numSamples*(1-phi)*2*Math.log(1/delta))
-					+ 1);
+		 * declared frequent 	
+		 */
+		// The +1 at the end is needed to ensure reqApproxNum > numsamples / 2.
+		int reqApproxNum = (int) Math.floor((numSamples*(1-phi))-Math.sqrt(numSamples*(1-phi)*2*Math.log(1/delta))) + 1;
 		int sampleSize = (int) Math.ceil((2 / Math.pow(epsilon, 2))*(d + Math.log(1/ phi)));
+		//System.out.println("reducersNum: " + numSamples + " reqApproxNum: " + reqApproxNum);
 
 		conf.setInt("PARMM.reducersNum", numSamples);
 		conf.setInt("PARMM.datasetSize", datasetSize);
@@ -305,7 +306,7 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setOutputKeyClass(Text.class); 
 		confAggr.setOutputValueClass(Text.class); 
 			
-		confAggr.setMapperClass(IdentityMapper.class);
+		confAggr.setMapperClass(AggregateMapper.class);
 		confAggr.setReducerClass(AggregateReducer.class);
 			
 		confAggr.setInputFormat(SequenceFileInputFormat.class);

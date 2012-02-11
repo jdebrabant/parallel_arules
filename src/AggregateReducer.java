@@ -36,12 +36,12 @@ public class AggregateReducer extends MapReduceBase
 			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{
-		ArrayList<Double> valuesArrList = new ArrayList<Double>();
+		ArrayList<Double> valuesArrList = new ArrayList<Double>(reqApproxNum);
 		while (values.hasNext()) 
 		{
-			String valueString = (values.next()).toString();
-			valuesArrList.add(Double.parseDouble(valueString));
+			valuesArrList.add(new Double(values.next().get()));
 		}
+		//System.out.println("Itemset: " + itemset.toString() + " in: " + valuesArrList.size());
 		/**
 		 * Only consider the itemset as "global frequent" if it
 		 * appears among the "local frequent" itemsets a sufficient
@@ -50,7 +50,7 @@ public class AggregateReducer extends MapReduceBase
 		if (valuesArrList.size() >= reqApproxNum)
 		{
 			Double[] valuesArr = new Double[valuesArrList.size()];
-			valuesArrList.toArray(valuesArr);
+			valuesArr = valuesArrList.toArray(valuesArr);
 			Arrays.sort(valuesArr);
 
 			/**
