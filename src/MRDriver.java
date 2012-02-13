@@ -218,7 +218,8 @@ public class MRDriver extends Configured implements Tool
 				FileStatus inputFileStatus = fs.getFileStatus(inputFilePath);
 				long len = inputFileStatus.getLen();
 				long blockSize = inputFileStatus.getBlockSize();
-				conf.setInt("mapred.min.split.size", (int) blockSize);
+				conf.setLong("mapred.min.split.size", blockSize);
+				conf.setLong("mapred.max.split.size", blockSize);
 				int mapTasksNum = ((int) (len / blockSize)) + 1;
 				conf.setNumMapTasks(mapTasksNum);
 				System.out.println("len: " + len + " blockSize: " 
