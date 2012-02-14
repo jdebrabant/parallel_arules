@@ -115,11 +115,12 @@ public class MRDriver extends Configured implements Tool
 		 * each mapper there only print out one record for each itemset,
 		 * so there isn't much to compress, I'd say. MR
 		 *
-		 * XXX: We should use LZO compression because it's faster. We
-		 * should check whether it is the default for Amazon MapReduce.
-		 * MR
+		 * In Amazon MapReduce compression of the map output seems to be
+		 * happen by default and the Snappy codec is used, which is
+		 * extremely fast.
 		 */
 		conf.setBoolean("mapred.compress.map.output", true); 
+		//conf.setMapOutputCompressorClass(com.hadoop.compression.lzo.LzopCodec.class);
 
 		conf.setJarByClass(MRDriver.class);
 			
