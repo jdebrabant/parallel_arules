@@ -38,7 +38,7 @@ public class AggregateReducer extends MapReduceBase
 			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{
-		reporter.incrCounter("AggregateReducerStart", id, System.nanoTime());
+		reporter.incrCounter("AggregateReducerStart", String.valueOf(id), System.nanoTime());
 
 		ArrayList<Double> valuesArrList = new ArrayList<Double>(reqApproxNum);
 		while (values.hasNext()) 
@@ -86,7 +86,7 @@ public class AggregateReducer extends MapReduceBase
 			output.collect(itemset, new Text(estFreqAndBoundsStr));
 		} // end if (valuesArrList.size() >= requiredNum)
 
-		reporter.incrCounter("AggregateReducerEnd", id, System.nanoTime());
+		reporter.incrCounter("AggregateReducerEnd", String.valueOf(id), System.nanoTime());
 	}
 }
 

@@ -38,7 +38,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
-		reporter.incrCounter("FIMReducerStart", id, System.nanoTime());
+		reporter.incrCounter("FIMReducerStart", String.valueOf(id), System.nanoTime());
 
 		// This is a very crappy way of checking whether we got the
 		// right number of transactions. It may not be too inefficient
@@ -56,7 +56,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
 	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent - (epsilon * 50) , output);
 		
-		reporter.incrCounter("FIMReducerEnd", id, System.nanoTime());
+		reporter.incrCounter("FIMReducerEnd", String.valueOf(id), System.nanoTime());
 	}
 }
 

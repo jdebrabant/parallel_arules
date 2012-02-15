@@ -48,7 +48,7 @@ public class InputSamplerMapper extends MapReduceBase implements
 			OutputCollector<IntWritable, Text> output, Reporter
 			reporter) throws IOException
 	{
-		reporter.incrCounter("FIMMapperStart", id, System.nanoTime());
+		reporter.incrCounter("FIMMapperStart", String.valueOf(id), System.nanoTime());
 	  	IntArrayWritable arr = (IntArrayWritable) map.get(key);
 		if (arr != null) 
 		{
@@ -57,7 +57,7 @@ public class InputSamplerMapper extends MapReduceBase implements
 				output.collect((IntWritable) element, value);
 			}
 		}
-		reporter.incrCounter("FIMMapperEnd", id, System.nanoTime());
+		reporter.incrCounter("FIMMapperEnd", String.valueOf(id), System.nanoTime());
 	}
 }
 
