@@ -24,36 +24,40 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 public class InputSamplerMapper extends MapReduceBase implements
 	Mapper<LongWritable, Text, IntWritable, Text>
-	{
-		private MapWritable map;
+{
+	private int id;
+	private MapWritable map;
 		
-		@Override
-		public void configure(JobConf conf) 
+	@Override
+	public void configure(JobConf conf) 
+	{ 
+		id = conf.getInt("mapred.task.partition", -1);
+		try {
+			map = new MapWritable();
+			Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
+			BufferedInputStream in = new BufferedInputStream(new FileInputStream(localFiles[0].toString()));
+			map.readFields(new DataInputStream(in));
+		} catch (IOException e) 
 		{ 
-			try {
-				map = new MapWritable();
-				Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
-				BufferedInputStream in = new BufferedInputStream(new FileInputStream(localFiles[0].toString()));
-				map.readFields(new DataInputStream(in));
-			} catch (IOException e) 
-			{ 
-			  	System.err.println(e.getMessage());
-			} 
-		}
-		
-		@Override
-		public void map(LongWritable key, Text value,
-						OutputCollector<IntWritable, Text> output,
-						Reporter reporter) throws IOException
+		  	System.err.println(e.getMessage());
+		} 
+	}
+	
+	@Override
+	public void map(LongWritable key, Text value,
+			OutputCollector<IntWritable, Text> output, Reporter
+			reporter) throws IOException
+	{
+		reporter.incrCounter("FIMMapperStart", id, System.nanoTime());
+	  	IntArrayWritable arr = (IntArrayWritable) map.get(key);
+		if (arr != null) 
 		{
-		  	IntArrayWritable arr = (IntArrayWritable) map.get(key);
-			if (arr != null) 
+		  	for(Writable element : arr.get()) 
 			{
-			  	for(Writable element : arr.get()) 
-				{
-					output.collect((IntWritable) element, value);
-				}
+				output.collect((IntWritable) element, value);
 			}
 		}
+		reporter.incrCounter("FIMMapperEnd", id, System.nanoTime());
 	}
+}
 

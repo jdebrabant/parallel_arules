@@ -15,6 +15,7 @@ import org.apache.hadoop.mapred.Reporter;
 public class AggregateReducer extends MapReduceBase 
 	implements Reducer<Text, DoubleWritable, Text, Text>
 {
+	int id;
 	int reducersNum;
 	int reqApproxNum;
 	int sampleSize;
@@ -27,6 +28,7 @@ public class AggregateReducer extends MapReduceBase
 		reqApproxNum = conf.getInt("PARMM.reqApproxNum", reducersNum / 2 +1);
 		epsilon = conf.getFloat("PARMM.epsilon", (float) 0.02);
 		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
+		id = conf.getInt("mapred.task.partition", -1);
 	}
 
 
@@ -36,6 +38,8 @@ public class AggregateReducer extends MapReduceBase
 			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{
+		reporter.incrCounter("AggregateReducerStart", id, System.nanoTime());
+
 		ArrayList<Double> valuesArrList = new ArrayList<Double>(reqApproxNum);
 		while (values.hasNext()) 
 		{
@@ -81,6 +85,8 @@ public class AggregateReducer extends MapReduceBase
 			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
 			output.collect(itemset, new Text(estFreqAndBoundsStr));
 		} // end if (valuesArrList.size() >= requiredNum)
+
+		reporter.incrCounter("AggregateReducerEnd", id, System.nanoTime());
 	}
 }
 

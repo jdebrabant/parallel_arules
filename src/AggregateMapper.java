@@ -14,11 +14,20 @@ import org.apache.hadoop.mapred.Reporter;
 public class AggregateMapper extends MapReduceBase 
 implements Mapper<Text, DoubleWritable, Text, DoubleWritable>
 {
+	private int id;
+
+	@Override
+	public void configure(JobConf conf) 
+	{
+		id = conf.getInt("mapred.task.partition", -1);
+	}
+
 
 	@Override
 	public void map(Text itemset, DoubleWritable freq,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter) throws IOException
 	{
+		reporter.incrCounter("AggregateMapperStart", id, System.nanoTime());
 
 		String itemsetStr = itemset.toString();
 		StringTokenizer strTok = new StringTokenizer(itemsetStr);
@@ -38,6 +47,8 @@ implements Mapper<Text, DoubleWritable, Text, DoubleWritable>
 		sortedItemsetStr += items[i];
 		Text sortedItemset = new Text(sortedItemsetStr);
 		output.collect(sortedItemset, freq);
+
+		reporter.incrCounter("AggregateMapperEnd", id, System.nanoTime());
 	}
 
 

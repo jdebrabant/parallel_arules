@@ -15,11 +15,13 @@ import org.apache.hadoop.mapred.Reporter;
 public class RandIntPartSamplerMapper extends MapReduceBase 
 implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 {
+	private int id;
 	private int reducersNum;
 	private int toSample;
 
 	@Override
 	public void configure(JobConf conf) {
+		id = conf.getInt("mapred.task.partition", -1);
 		reducersNum = conf.getInt("PARMM.reducersNum", 1000);
 		try
 		{
@@ -37,6 +39,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 					OutputCollector<IntWritable, Text> output, 
 					Reporter reporter) throws IOException
 	{
+		reporter.incrCounter("FIMMapperStart", id, System.nanoTime());
 		Random rand = new Random();
 		Writable[] transactions = transactionsArrWr.get();
 		int transactionsNum = transactions.length;
@@ -46,6 +49,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 			int sampledIndex = rand.nextInt(transactionsNum);
 			output.collect(new IntWritable(i % reducersNum), (Text) transactions[sampledIndex]);
 		}
+		reporter.incrCounter("FIMMapperEnd", id, System.nanoTime());
 	}
 }
 
