@@ -39,7 +39,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 					OutputCollector<IntWritable, Text> output, 
 					Reporter reporter) throws IOException
 	{
-		reporter.incrCounter("FIMMapperStart", String.valueOf(id), System.nanoTime());
+		reporter.incrCounter("FIMMapperStart", String.valueOf(id), System.currentTimeMillis());
 		Random rand = new Random();
 		Writable[] transactions = transactionsArrWr.get();
 		int transactionsNum = transactions.length;
@@ -49,7 +49,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 			int sampledIndex = rand.nextInt(transactionsNum);
 			output.collect(new IntWritable(i % reducersNum), (Text) transactions[sampledIndex]);
 		}
-		reporter.incrCounter("FIMMapperEnd", String.valueOf(id), System.nanoTime());
+		reporter.incrCounter("FIMMapperEnd", String.valueOf(id), System.currentTimeMillis());
 	}
 }
 

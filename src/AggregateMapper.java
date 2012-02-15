@@ -27,7 +27,7 @@ implements Mapper<Text, DoubleWritable, Text, DoubleWritable>
 	public void map(Text itemset, DoubleWritable freq,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter) throws IOException
 	{
-		reporter.incrCounter("AggregateMapperStart", String.valueOf(id), System.nanoTime());
+		reporter.incrCounter("AggregateMapperStart", String.valueOf(id), System.currentTimeMillis());
 
 		String itemsetStr = itemset.toString();
 		StringTokenizer strTok = new StringTokenizer(itemsetStr);
@@ -48,7 +48,7 @@ implements Mapper<Text, DoubleWritable, Text, DoubleWritable>
 		Text sortedItemset = new Text(sortedItemsetStr);
 		output.collect(sortedItemset, freq);
 
-		reporter.incrCounter("AggregateMapperEnd", String.valueOf(id), System.nanoTime());
+		reporter.incrCounter("AggregateMapperEnd", String.valueOf(id), System.currentTimeMillis());
 	}
 
 
