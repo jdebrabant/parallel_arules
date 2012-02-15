@@ -14,7 +14,7 @@ import org.apache.hadoop.mapred.Reporter;
 
 import com.google.common.collect.Sets;
 
-public class MRAprioriMapper extends MapReduceBase 
+public class DistribCountingMapper extends MapReduceBase 
 	implements Mapper<LongWritable, Text,Text, IntWritable>
 {
 	@Override

@@ -11,7 +11,7 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
-public class MRAprioriReducer extends MapReduceBase 
+public class DistribCountingReducer extends MapReduceBase 
   implements Reducer<Text, IntWritable, Text, Text>
 {
 	int minFreqPercent;
@@ -20,8 +20,8 @@ public class MRAprioriReducer extends MapReduceBase
 	@Override
 	public void configure(JobConf conf) 
 	{
-		minFreqPercent = conf.getInt("MRAPRIORI.minFreqPercent", 20); 
-		datasetSize = conf.getInt("MRAPRIORI.datasetSize", 1000);
+		minFreqPercent = conf.getInt("DISTRCOUNT.minFreqPercent", 20); 
+		datasetSize = conf.getInt("DISTRCOUNT.datasetSize", 1000);
 	}
 	@Override
 	public void reduce(Text itemset, Iterator<IntWritable> values, 

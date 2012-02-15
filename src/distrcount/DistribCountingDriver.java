@@ -9,18 +9,18 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class MRAprioriDriver extends Configured implements Tool
+public class DistribCountingDriver extends Configured implements Tool
 {
 		
 	public static void main(String args[]) throws Exception
 	{
 		if (args.length < 4)
 		{
-			System.out.println("usage: java MRAprioriDriver <minFreqPercent> <datasetSize> <path to input database> <path to output global FIs>");
+			System.out.println("usage: java DistribCountingDriver <minFreqPercent> <datasetSize> <path to input database> <path to output global FIs>");
 			System.exit(1); 
 		}
 
-		int res = ToolRunner.run(new MRAprioriDriver(), args);
+		int res = ToolRunner.run(new DistribCountingDriver(), args);
 
 		System.exit(res);
 	}
@@ -34,13 +34,13 @@ public class MRAprioriDriver extends Configured implements Tool
 			
 		int minFreqPercent = Integer.parseInt(args[0]);
 		int datasetSize = Integer.parseInt(args[1]);
-		conf.setInt("MRAPRIORI.datasetSize", datasetSize);
-		conf.setInt("MRAPRIORI.minFreqPercent", minFreqPercent);
+		conf.setInt("DISTRCOUNT.datasetSize", datasetSize);
+		conf.setInt("DISTRCOUNT.minFreqPercent", minFreqPercent);
 
 		conf.setBoolean("mapred.reduce.tasks.speculative.execution", false); 
 		conf.setInt("mapred.task.timeout", 60000000); 
 
-		conf.setJarByClass(MRAprioriDriver.class);
+		conf.setJarByClass(DistribCountingDriver.class);
 			
 		conf.setMapOutputKeyClass(Text.class); 
 		conf.setMapOutputValueClass(IntWritable.class); 
@@ -48,9 +48,9 @@ public class MRAprioriDriver extends Configured implements Tool
 		conf.setOutputKeyClass(Text.class); 
 		conf.setOutputValueClass(Text.class); 
 			
-		conf.setMapperClass(MRAprioriMapper.class);
-		conf.setCombinerClass(MRAprioriCombiner.class);
-		conf.setReducerClass(MRAprioriReducer.class);
+		conf.setMapperClass(DistribCountingMapper.class);
+		conf.setCombinerClass(DistribCountingCombiner.class);
+		conf.setReducerClass(DistribCountingReducer.class);
 			
 		conf.setInputFormat(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.addInputPath(conf, new Path(args[2]));

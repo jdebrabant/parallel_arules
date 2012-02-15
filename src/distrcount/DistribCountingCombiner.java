@@ -8,7 +8,7 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
-public class MRAprioriCombiner extends MapReduceBase 
+public class DistribCountingCombiner extends MapReduceBase 
   implements Reducer<Text, IntWritable, Text, IntWritable>
 {
 	@Override
