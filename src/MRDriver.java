@@ -280,13 +280,7 @@ public class MRDriver extends Configured implements Tool
 
 		conf.setReducerClass(FIMReducer.class);
 			
-		job_start_time = System.nanoTime(); 
-		RunningJob FIMjob = JobClient.runJob(conf);
-		job_end_time = System.nanoTime(); 
 
-		job_runtime = (job_end_time-job_start_time) / 1000000; 
-			
-		System.out.println("local FIM runtime (milliseconds): " + job_runtime);	
 	
 		/************************ Job 2 (aggregation) Configuration ************************/
 		
@@ -317,14 +311,22 @@ public class MRDriver extends Configured implements Tool
 
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[10]));
 
+
 		job_start_time = System.nanoTime(); 
-		RunningJob aggregateJob = JobClient.runJob(confAggr);
+		RunningJob FIMjob = JobClient.runJob(conf);
 		job_end_time = System.nanoTime(); 
+
+		RunningJob aggregateJob = JobClient.runJob(confAggr);
+		long job2_end_time = System.nanoTime(); 
 			
 		job_runtime = (job_end_time-job_start_time) / 1000000; 
 			
+		System.out.println("local FIM runtime (milliseconds): " + job_runtime);	
+
+		long job2_runtime = (job2_end_time-job_end_time) / 1000000; 
+			
 		System.out.println("aggregation runtime (milliseconds): " +
-				job_runtime); 
+				job2_runtime); 
 
 		if (args[7].equals("4")) {
 			// Remove samplesMap file 
@@ -413,7 +415,7 @@ public class MRDriver extends Configured implements Tool
 				FIMMapperEndMax = l;
 			}
 		}
-		System.out.println("FIMMapper total runtime (milliseconds): " + (FIMMapperEndMax - FIMMapperStartMin) / 1000000);
+		System.out.println("FIMMapper total runtime (milliseconds): " + (FIMMapperEndMax - FIMMapperStartMin));
 		long[] FIMMapperRunTimes = new long[FIMMapperStartTimes.length];
 		long FIMMapperRunTimesSum = 0;
 		for (int l = 0; l < FIMMapperStartTimes.length; l++)
@@ -421,7 +423,7 @@ public class MRDriver extends Configured implements Tool
 			FIMMapperRunTimes[l] = FIMMapperEndTimes[l] - FIMMapperStartTimes[l];
 			FIMMapperRunTimesSum += FIMMapperRunTimes[l];
 		}
-		System.out.println("FIMMapper average task runtime (milliseconds): " + FIMMapperRunTimesSum / (FIMMapperStartTimes.length * 1000000));
+		System.out.println("FIMMapper average task runtime (milliseconds): " + FIMMapperRunTimesSum / FIMMapperStartTimes.length );
 		long FIMMapperRunTimesMin = FIMMapperRunTimes[0];
 		long FIMMapperRunTimesMax = FIMMapperRunTimes[0];
 		for (long l : FIMMapperRunTimes)
@@ -435,8 +437,8 @@ public class MRDriver extends Configured implements Tool
 				FIMMapperRunTimesMax = l;
 			}
 		}
-		System.out.println("FIMMapper minimum task runtime (milliseconds): " + FIMMapperRunTimesMin / 1000000);
-		System.out.println("FIMMapper maximum task runtime (milliseconds): " + FIMMapperRunTimesMax / 1000000);
+		System.out.println("FIMMapper minimum task runtime (milliseconds): " + FIMMapperRunTimesMin);
+		System.out.println("FIMMapper maximum task runtime (milliseconds): " + FIMMapperRunTimesMax);
 
 		long FIMReducerStartMin = FIMReducerStartTimes[0];
 		for (long l : FIMReducerStartTimes)
@@ -454,7 +456,8 @@ public class MRDriver extends Configured implements Tool
 				FIMReducerEndMax = l;
 			}
 		}
-		System.out.println("FIMReducer total runtime (milliseconds): " + (FIMReducerEndMax - FIMReducerStartMin) / 1000000);
+		System.out.println("1st round shuffle phase runtime (milliseconds): " + (FIMReducerStartMin - FIMMapperEndMax));
+		System.out.println("FIMReducer total runtime (milliseconds): " + (FIMReducerEndMax - FIMReducerStartMin));
 		long[] FIMReducerRunTimes = new long[FIMReducerStartTimes.length];
 		long FIMReducerRunTimesSum = 0;
 		for (int l = 0; l < FIMReducerStartTimes.length; l++)
@@ -462,7 +465,7 @@ public class MRDriver extends Configured implements Tool
 			FIMReducerRunTimes[l] = FIMReducerEndTimes[l] - FIMReducerStartTimes[l];
 			FIMReducerRunTimesSum += FIMReducerRunTimes[l];
 		}
-		System.out.println("FIMReducer average task runtime (milliseconds): " + FIMReducerRunTimesSum / (FIMReducerStartTimes.length * 1000000));
+		System.out.println("FIMReducer average task runtime (milliseconds): " + FIMReducerRunTimesSum / FIMReducerStartTimes.length);
 		long FIMReducerRunTimesMin = FIMReducerRunTimes[0];
 		long FIMReducerRunTimesMax = FIMReducerRunTimes[0];
 		for (long l : FIMReducerRunTimes)
@@ -476,8 +479,8 @@ public class MRDriver extends Configured implements Tool
 				FIMReducerRunTimesMax = l;
 			}
 		}
-		System.out.println("FIMReducer minimum task runtime (milliseconds): " + FIMReducerRunTimesMin / 1000000);
-		System.out.println("FIMReducer maximum task runtime (milliseconds): " + FIMReducerRunTimesMax / 1000000);
+		System.out.println("FIMReducer minimum task runtime (milliseconds): " + FIMReducerRunTimesMin);
+		System.out.println("FIMReducer maximum task runtime (milliseconds): " + FIMReducerRunTimesMax);
 
 		long AggregateMapperStartMin = AggregateMapperStartTimes[0];
 		for (long l : AggregateMapperStartTimes)
@@ -495,7 +498,8 @@ public class MRDriver extends Configured implements Tool
 				AggregateMapperEndMax = l;
 			}
 		}
-		System.out.println("AggregateMapper total runtime (milliseconds): " + (AggregateMapperEndMax - AggregateMapperStartMin) / 1000000);
+		System.out.println("1st-2nd round phase runtime (milliseconds): " + (AggregateMapperStartMin - FIMReducerEndMax));
+		System.out.println("AggregateMapper total runtime (milliseconds): " + (AggregateMapperEndMax - AggregateMapperStartMin));
 		long[] AggregateMapperRunTimes = new long[AggregateMapperStartTimes.length];
 		long AggregateMapperRunTimesSum = 0;
 		for (int l = 0; l < AggregateMapperStartTimes.length; l++)
@@ -503,7 +507,7 @@ public class MRDriver extends Configured implements Tool
 			AggregateMapperRunTimes[l] = AggregateMapperEndTimes[l] - AggregateMapperStartTimes[l];
 			AggregateMapperRunTimesSum += AggregateMapperRunTimes[l];
 		}
-		System.out.println("AggregateMapper average task runtime (milliseconds): " + AggregateMapperRunTimesSum / (AggregateMapperStartTimes.length * 1000000));
+		System.out.println("AggregateMapper average task runtime (milliseconds): " + AggregateMapperRunTimesSum / AggregateMapperStartTimes.length);
 		long AggregateMapperRunTimesMin = AggregateMapperRunTimes[0];
 		long AggregateMapperRunTimesMax = AggregateMapperRunTimes[0];
 		for (long l : AggregateMapperRunTimes)
@@ -517,8 +521,8 @@ public class MRDriver extends Configured implements Tool
 				AggregateMapperRunTimesMax = l;
 			}
 		}
-		System.out.println("AggregateMapper minimum task runtime (milliseconds): " + AggregateMapperRunTimesMin / 1000000);
-		System.out.println("AggregateMapper maximum task runtime (milliseconds): " + AggregateMapperRunTimesMax / 1000000);
+		System.out.println("AggregateMapper minimum task runtime (milliseconds): " + AggregateMapperRunTimesMin);
+		System.out.println("AggregateMapper maximum task runtime (milliseconds): " + AggregateMapperRunTimesMax);
 
 		long AggregateReducerStartMin = AggregateReducerStartTimes[0];
 		for (long l : AggregateReducerStartTimes)
@@ -536,7 +540,8 @@ public class MRDriver extends Configured implements Tool
 				AggregateReducerEndMax = l;
 			}
 		}
-		System.out.println("AggregateReducer total runtime (milliseconds): " + (AggregateReducerEndMax - AggregateReducerStartMin) / 1000000);
+		System.out.println("2nd round shuffle phase runtime (milliseconds): " + (AggregateReducerStartMin - AggregateMapperEndMax));
+		System.out.println("AggregateReducer total runtime (milliseconds): " + (AggregateReducerEndMax - AggregateReducerStartMin));
 		long[] AggregateReducerRunTimes = new long[AggregateReducerStartTimes.length];
 		long AggregateReducerRunTimesSum = 0;
 		for (int l = 0; l < AggregateReducerStartTimes.length; l++)
@@ -544,7 +549,7 @@ public class MRDriver extends Configured implements Tool
 			AggregateReducerRunTimes[l] = AggregateReducerEndTimes[l] - AggregateReducerStartTimes[l];
 			AggregateReducerRunTimesSum += AggregateReducerRunTimes[l];
 		}
-		System.out.println("AggregateReducer average task runtime (milliseconds): " + AggregateReducerRunTimesSum / (AggregateReducerStartTimes.length * 1000000));
+		System.out.println("AggregateReducer average task runtime (milliseconds): " + AggregateReducerRunTimesSum / AggregateReducerStartTimes.length);
 		long AggregateReducerRunTimesMin = AggregateReducerRunTimes[0];
 		long AggregateReducerRunTimesMax = AggregateReducerRunTimes[0];
 		for (long l : AggregateReducerRunTimes)
@@ -558,8 +563,8 @@ public class MRDriver extends Configured implements Tool
 				AggregateReducerRunTimesMax = l;
 			}
 		}
-		System.out.println("AggregateReducer minimum task runtime (milliseconds): " + AggregateReducerRunTimesMin / 1000000);
-		System.out.println("AggregateReducer maximum task runtime (milliseconds): " + AggregateReducerRunTimesMax / 1000000);
+		System.out.println("AggregateReducer minimum task runtime (milliseconds): " + AggregateReducerRunTimesMin);
+		System.out.println("AggregateReducer maximum task runtime (milliseconds): " + AggregateReducerRunTimesMax);
 
 		return 0;
 	}
