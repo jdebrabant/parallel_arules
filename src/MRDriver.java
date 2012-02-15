@@ -36,10 +36,11 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.IdentityMapper;
+import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
@@ -84,7 +85,7 @@ public class MRDriver extends Configured implements Tool
 		
 		JobConf conf = new JobConf(getConf()); 
 
-
+		System.out.println("counters limit: " + conf.getInt("mapreduce.job.counters.limit", 1));
 		/*
 		 * Compute the number of required "votes" for an itemsets to be
 		 * declared frequent 	
@@ -280,7 +281,7 @@ public class MRDriver extends Configured implements Tool
 		conf.setReducerClass(FIMReducer.class);
 			
 		job_start_time = System.nanoTime(); 
-		JobClient.runJob(conf);
+		RunningJob FIMjob = JobClient.runJob(conf);
 		job_end_time = System.nanoTime(); 
 
 		job_runtime = (job_end_time-job_start_time) / 1000000; 
@@ -317,7 +318,7 @@ public class MRDriver extends Configured implements Tool
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[10]));
 
 		job_start_time = System.nanoTime(); 
-		JobClient.runJob(confAggr);
+		RunningJob aggregateJob = JobClient.runJob(confAggr);
 		job_end_time = System.nanoTime(); 
 			
 		job_runtime = (job_end_time-job_start_time) / 1000000; 
@@ -329,6 +330,236 @@ public class MRDriver extends Configured implements Tool
 			// Remove samplesMap file 
 			fs.delete(samplesMapPath, false);
 		}
+
+		Counters counters = FIMjob.getCounters();
+		Counters.Group FIMMapperStartTimesCounters = counters.getGroup("FIMMapperStart");
+		long[] FIMMapperStartTimes = new long[FIMMapperStartTimesCounters.size()];
+		int i = 0;
+		for (Counters.Counter counter : FIMMapperStartTimesCounters)
+		{
+			FIMMapperStartTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group FIMMapperEndTimesCounters = counters.getGroup("FIMMapperEnd");
+		long[] FIMMapperEndTimes = new long[FIMMapperEndTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : FIMMapperEndTimesCounters)
+		{
+			FIMMapperEndTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group FIMReducerStartTimesCounters = counters.getGroup("FIMReducerStart");
+		long[] FIMReducerStartTimes = new long[FIMReducerStartTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : FIMReducerStartTimesCounters)
+		{
+			FIMReducerStartTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group FIMReducerEndTimesCounters = counters.getGroup("FIMReducerEnd");
+		long[] FIMReducerEndTimes = new long[FIMReducerEndTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : FIMReducerEndTimesCounters)
+		{
+			FIMReducerEndTimes[i++] = counter.getCounter();
+		}
+
+		counters = aggregateJob.getCounters();
+		Counters.Group AggregateMapperStartTimesCounters = counters.getGroup("AggregateMapperStart");
+		long[] AggregateMapperStartTimes = new long[AggregateMapperStartTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : AggregateMapperStartTimesCounters)
+		{
+			AggregateMapperStartTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group AggregateMapperEndTimesCounters = counters.getGroup("AggregateMapperEnd");
+		long[] AggregateMapperEndTimes = new long[AggregateMapperEndTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : AggregateMapperEndTimesCounters)
+		{
+			AggregateMapperEndTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group AggregateReducerStartTimesCounters = counters.getGroup("AggregateReducerStart");
+		long[] AggregateReducerStartTimes = new long[AggregateReducerStartTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : AggregateReducerStartTimesCounters)
+		{
+			AggregateReducerStartTimes[i++] = counter.getCounter();
+		}
+
+		Counters.Group AggregateReducerEndTimesCounters = counters.getGroup("AggregateReducerEnd");
+		long[] AggregateReducerEndTimes = new long[AggregateReducerEndTimesCounters.size()];
+		i = 0;
+		for (Counters.Counter counter : AggregateReducerEndTimesCounters)
+		{
+			AggregateReducerEndTimes[i++] = counter.getCounter();
+		}
+
+		long FIMMapperStartMin = FIMMapperStartTimes[0];
+		for (long l : FIMMapperStartTimes)
+		{
+			if (l < FIMMapperStartMin)
+			{
+				FIMMapperStartMin = l;
+			}
+		}
+		long FIMMapperEndMax= FIMMapperEndTimes[0];
+		for (long l : FIMMapperEndTimes)
+		{
+			if (l > FIMMapperEndMax)
+			{
+				FIMMapperEndMax = l;
+			}
+		}
+		System.out.println("FIMMapper total runtime (milliseconds): " + (FIMMapperEndMax - FIMMapperStartMin) / 1000000);
+		long[] FIMMapperRunTimes = new long[FIMMapperStartTimes.length];
+		long FIMMapperRunTimesSum = 0;
+		for (int l = 0; l < FIMMapperStartTimes.length; l++)
+		{
+			FIMMapperRunTimes[l] = FIMMapperEndTimes[l] - FIMMapperStartTimes[l];
+			FIMMapperRunTimesSum += FIMMapperRunTimes[l];
+		}
+		System.out.println("FIMMapper average task runtime (milliseconds): " + FIMMapperRunTimesSum / (FIMMapperStartTimes.length * 1000000));
+		long FIMMapperRunTimesMin = FIMMapperRunTimes[0];
+		long FIMMapperRunTimesMax = FIMMapperRunTimes[0];
+		for (long l : FIMMapperRunTimes)
+		{
+			if (l < FIMMapperRunTimesMin)
+			{
+				FIMMapperRunTimesMin = l;
+			}
+			if (l > FIMMapperRunTimesMax)
+			{
+				FIMMapperRunTimesMax = l;
+			}
+		}
+		System.out.println("FIMMapper minimum task runtime (milliseconds): " + FIMMapperRunTimesMin / 1000000);
+		System.out.println("FIMMapper maximum task runtime (milliseconds): " + FIMMapperRunTimesMax / 1000000);
+
+		long FIMReducerStartMin = FIMReducerStartTimes[0];
+		for (long l : FIMReducerStartTimes)
+		{
+			if (l < FIMReducerStartMin)
+			{
+				FIMReducerStartMin = l;
+			}
+		}
+		long FIMReducerEndMax= FIMReducerEndTimes[0];
+		for (long l : FIMReducerEndTimes)
+		{
+			if (l > FIMReducerEndMax)
+			{
+				FIMReducerEndMax = l;
+			}
+		}
+		System.out.println("FIMReducer total runtime (milliseconds): " + (FIMReducerEndMax - FIMReducerStartMin) / 1000000);
+		long[] FIMReducerRunTimes = new long[FIMReducerStartTimes.length];
+		long FIMReducerRunTimesSum = 0;
+		for (int l = 0; l < FIMReducerStartTimes.length; l++)
+		{
+			FIMReducerRunTimes[l] = FIMReducerEndTimes[l] - FIMReducerStartTimes[l];
+			FIMReducerRunTimesSum += FIMReducerRunTimes[l];
+		}
+		System.out.println("FIMReducer average task runtime (milliseconds): " + FIMReducerRunTimesSum / (FIMReducerStartTimes.length * 1000000));
+		long FIMReducerRunTimesMin = FIMReducerRunTimes[0];
+		long FIMReducerRunTimesMax = FIMReducerRunTimes[0];
+		for (long l : FIMReducerRunTimes)
+		{
+			if (l < FIMReducerRunTimesMin)
+			{
+				FIMReducerRunTimesMin = l;
+			}
+			if (l > FIMReducerRunTimesMax)
+			{
+				FIMReducerRunTimesMax = l;
+			}
+		}
+		System.out.println("FIMReducer minimum task runtime (milliseconds): " + FIMReducerRunTimesMin / 1000000);
+		System.out.println("FIMReducer maximum task runtime (milliseconds): " + FIMReducerRunTimesMax / 1000000);
+
+		long AggregateMapperStartMin = AggregateMapperStartTimes[0];
+		for (long l : AggregateMapperStartTimes)
+		{
+			if (l < AggregateMapperStartMin)
+			{
+				AggregateMapperStartMin = l;
+			}
+		}
+		long AggregateMapperEndMax = AggregateMapperEndTimes[0];
+		for (long l : AggregateMapperEndTimes)
+		{
+			if (l > AggregateMapperEndMax)
+			{
+				AggregateMapperEndMax = l;
+			}
+		}
+		System.out.println("AggregateMapper total runtime (milliseconds): " + (AggregateMapperEndMax - AggregateMapperStartMin) / 1000000);
+		long[] AggregateMapperRunTimes = new long[AggregateMapperStartTimes.length];
+		long AggregateMapperRunTimesSum = 0;
+		for (int l = 0; l < AggregateMapperStartTimes.length; l++)
+		{
+			AggregateMapperRunTimes[l] = AggregateMapperEndTimes[l] - AggregateMapperStartTimes[l];
+			AggregateMapperRunTimesSum += AggregateMapperRunTimes[l];
+		}
+		System.out.println("AggregateMapper average task runtime (milliseconds): " + AggregateMapperRunTimesSum / (AggregateMapperStartTimes.length * 1000000));
+		long AggregateMapperRunTimesMin = AggregateMapperRunTimes[0];
+		long AggregateMapperRunTimesMax = AggregateMapperRunTimes[0];
+		for (long l : AggregateMapperRunTimes)
+		{
+			if (l < AggregateMapperRunTimesMin)
+			{
+				AggregateMapperRunTimesMin = l;
+			}
+			if (l > AggregateMapperRunTimesMax)
+			{
+				AggregateMapperRunTimesMax = l;
+			}
+		}
+		System.out.println("AggregateMapper minimum task runtime (milliseconds): " + AggregateMapperRunTimesMin / 1000000);
+		System.out.println("AggregateMapper maximum task runtime (milliseconds): " + AggregateMapperRunTimesMax / 1000000);
+
+		long AggregateReducerStartMin = AggregateReducerStartTimes[0];
+		for (long l : AggregateReducerStartTimes)
+		{
+			if (l < AggregateReducerStartMin)
+			{
+				AggregateReducerStartMin = l;
+			}
+		}
+		long AggregateReducerEndMax= AggregateReducerEndTimes[0];
+		for (long l : AggregateReducerEndTimes)
+		{
+			if (l > AggregateReducerEndMax)
+			{
+				AggregateReducerEndMax = l;
+			}
+		}
+		System.out.println("AggregateReducer total runtime (milliseconds): " + (AggregateReducerEndMax - AggregateReducerStartMin) / 1000000);
+		long[] AggregateReducerRunTimes = new long[AggregateReducerStartTimes.length];
+		long AggregateReducerRunTimesSum = 0;
+		for (int l = 0; l < AggregateReducerStartTimes.length; l++)
+		{
+			AggregateReducerRunTimes[l] = AggregateReducerEndTimes[l] - AggregateReducerStartTimes[l];
+			AggregateReducerRunTimesSum += AggregateReducerRunTimes[l];
+		}
+		System.out.println("AggregateReducer average task runtime (milliseconds): " + AggregateReducerRunTimesSum / (AggregateReducerStartTimes.length * 1000000));
+		long AggregateReducerRunTimesMin = AggregateReducerRunTimes[0];
+		long AggregateReducerRunTimesMax = AggregateReducerRunTimes[0];
+		for (long l : AggregateReducerRunTimes)
+		{
+			if (l < AggregateReducerRunTimesMin)
+			{
+				AggregateReducerRunTimesMin = l;
+			}
+			if (l > AggregateReducerRunTimesMax)
+			{
+				AggregateReducerRunTimesMax = l;
+			}
+		}
+		System.out.println("AggregateReducer minimum task runtime (milliseconds): " + AggregateReducerRunTimesMin / 1000000);
+		System.out.println("AggregateReducer maximum task runtime (milliseconds): " + AggregateReducerRunTimesMax / 1000000);
 
 		return 0;
 	}
