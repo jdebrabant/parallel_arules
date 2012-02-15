@@ -85,7 +85,6 @@ public class MRDriver extends Configured implements Tool
 		
 		JobConf conf = new JobConf(getConf()); 
 
-		System.out.println("counters limit: " + conf.getInt("mapreduce.job.counters.limit", 1));
 		/*
 		 * Compute the number of required "votes" for an itemsets to be
 		 * declared frequent 	
@@ -215,7 +214,6 @@ public class MRDriver extends Configured implements Tool
 				WholeSplitInputFormat.addInputPath(conf, inputFilePath);
 				conf.setMapperClass(RandIntPartSamplerMapper.class);
 				// Compute number of map tasks.
-				// XXX I hope this is correct =)
 				fs = inputFilePath.getFileSystem(conf);
 				FileStatus inputFileStatus = fs.getFileStatus(inputFilePath);
 				long len = inputFileStatus.getLen();
@@ -224,46 +222,56 @@ public class MRDriver extends Configured implements Tool
 				conf.setLong("mapred.max.split.size", blockSize);
 				int mapTasksNum = ((int) (len / blockSize)) + 1;
 				conf.setNumMapTasks(mapTasksNum);
-				System.out.println("len: " + len + " blockSize: " 
-						+ blockSize + " mapTasksNum: " + mapTasksNum);
+				//System.out.println("len: " + len + " blockSize: " 
+				//		+ blockSize + " mapTasksNum: " + mapTasksNum);
 				// Extract random integer partition of total sample
 				// size into up to mapTasksNum partitions.
 				// XXX I'm not sure this is a correct way to do
 				// it.
 				rand = new Random();
-				int sum = 0;
-				int i = 0;
-				IntWritable[] toSampleArr = new IntWritable[mapTasksNum];
-				for (i = 0; i < mapTasksNum -1; i++) 
+				IntWritable[][] toSampleArr = new IntWritable[mapTasksNum][numSamples];
+				for (int j = 0; j < numSamples; j++)
 				{
-					int size = rand.nextInt(numSamples * sampleSize - sum);
-					toSampleArr[i]= new IntWritable(size);
-					sum += size;
-					if (sum > numSamples * sampleSize)
+					IntWritable[] tempToSampleArr = new IntWritable[mapTasksNum];
+					int sum = 0;
+					int i;
+					for (i = 0; i < mapTasksNum -1; i++)
 					{
-						System.out.println("Something went wrong generating the sample Sizes");
-						System.exit(1);
+						int size = rand.nextInt(sampleSize - sum);
+						tempToSampleArr[i] = new IntWritable(size);
+						sum += size;
+						if (sum > numSamples * sampleSize)
+						{
+							System.out.println("Something went wrong generating the sample Sizes");
+							System.exit(1);
+						}
+						if (sum == sampleSize)
+						{
+							break;
+						}
 					}
-					if (sum == numSamples * sampleSize)
+					if (i == mapTasksNum -1) 
 					{
-						break;
+						tempToSampleArr[i] = new IntWritable(sampleSize - sum);
+					}
+					else 
+					{
+						for (; i < mapTasksNum; i++)
+						{
+							tempToSampleArr[i] = new IntWritable(0); 
+						}
+					}
+					Collections.shuffle(Arrays.asList(tempToSampleArr));
+					for (i = 0; i < mapTasksNum; i++)
+					{
+						toSampleArr[i][j] = tempToSampleArr[i];
 					}
 				}
-				if (i == mapTasksNum -1) 
-				{
-					toSampleArr[i] = new IntWritable(numSamples * sampleSize - sum);
-				}
-				else 
-				{
-					for (; i < mapTasksNum; i++)
-					{
-						toSampleArr[i] = new IntWritable(0); 
-					}
-				}
-				Collections.shuffle(Arrays.asList(toSampleArr));
-				
-				DefaultStringifier.storeArray(conf, toSampleArr, "PARMM.toSampleArr");
 
+				for (int i = 0; i < mapTasksNum; i++)
+				{
+					DefaultStringifier.storeArray(conf, toSampleArr[i], "PARMM.toSampleArr_" + i);
+				}
 				break;
 			default:
 				System.err.println("Wrong Mapper ID. Can only be in [1,5]");

@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 
 import org.apache.hadoop.io.DefaultStringifier;
@@ -18,6 +20,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 	private int id;
 	private int reducersNum;
 	private int toSample;
+	private IntWritable[] sampleDestinations;
 
 	@Override
 	public void configure(JobConf conf) {
@@ -25,11 +28,25 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 		reducersNum = conf.getInt("PARMM.reducersNum", 1000);
 		try
 		{
-			IntWritable [] toSampleArr = DefaultStringifier.loadArray(conf, "PARMM.toSampleArr", IntWritable.class);
 			int id = conf.getInt("mapred.task.partition", -1);
 			System.out.println("id: " + id);
-			toSample = toSampleArr[id].get();
+			IntWritable[] toSampleArr = DefaultStringifier.loadArray(conf, "PARMM.toSampleArr_" + id, IntWritable.class);
+			toSample = 0;
+			for (IntWritable toSampleRed : toSampleArr)
+			{
+				toSample += toSampleRed.get();
+			}
 			System.out.println("toSample: " + toSample);
+			sampleDestinations = new IntWritable[toSample];
+			int i = 0;
+			for (int k = 0; k < toSampleArr.length; k++)
+			{
+				for (int j = 0; j < toSampleArr[k].get(); j++)
+				{
+					sampleDestinations[i++] = new IntWritable(k);
+				}
+			}
+			Collections.shuffle(Arrays.asList(sampleDestinations));
 		}
 		catch (IOException e) {} 
 	}
@@ -47,7 +64,7 @@ implements Mapper<NullWritable, TextArrayWritable, IntWritable, Text>
 		for (int i = 0; i < toSample; i++)
 		{
 			int sampledIndex = rand.nextInt(transactionsNum);
-			output.collect(new IntWritable(i % reducersNum), (Text) transactions[sampledIndex]);
+			output.collect(sampleDestinations[i], (Text) transactions[sampledIndex]);
 		}
 		reporter.incrCounter("FIMMapperEnd", String.valueOf(id), System.currentTimeMillis());
 	}
