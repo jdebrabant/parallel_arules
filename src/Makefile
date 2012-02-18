@@ -4,8 +4,8 @@ all:
 	javac -classpath $(CLASSPATH):distrcount/guava.jar distrcount/*.java
 	javac -classpath $(CLASSPATH):util/ util/*.java
 	jar cvfm parallel.jar jar-manifest *.class fim/fpgrowth/*.class
-	jar cvfm converter.jar util/jar-manifest util/Txt2SeqConverter.class
-	jar cvfm distrcount.jar distrcount/jar-manifest distrcount/*.class
+	cd util && jar cvfm ../converter.jar jar-manifest Txt2SeqConverter.class && cd ..
+	cd distrcount && jar cvfm ../distrcount.jar jar-manifest *.class && cd ..
 
 clean: 
 	rm *.class
