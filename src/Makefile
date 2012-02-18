@@ -10,5 +10,6 @@ all:
 clean: 
 	rm *.class
 	rm fim/fpgrowth/*.class
+	rm distrcount/*.class
 	rm util/*.class
 	rm *.jar
