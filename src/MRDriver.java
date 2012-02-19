@@ -120,7 +120,7 @@ public class MRDriver extends Configured implements Tool
 		 * extremely fast.
 		 */
 		conf.setBoolean("mapred.compress.map.output", true); 
-		//conf.setMapOutputCompressorClass(com.hadoop.compression.lzo.LzopCodec.class);
+		//conf.setMapOutputCompressorClass(com.hadoop.compression.lzo.LzoCodec.class);
 
 		conf.setJarByClass(MRDriver.class);
 			
