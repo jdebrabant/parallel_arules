@@ -36,7 +36,7 @@ EQUATIONS
 	Rconstr		constraint on number of votes;
 
 	objfun .. 	objval =e= N*(2/(epsilon**2))*(d+LOG(1/phi)) ;
-	maxNumSmples .. N =l= p ;
+	maxNumSamples .. N =l= p ;
 	Rconstr ..	N*(1-phi)-SQRT(N*(1-phi)*2*LOG(1/delta)) =g= N /2 + 1;
 
 MODEL samplesize /ALL/;
