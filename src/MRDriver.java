@@ -314,7 +314,7 @@ public class MRDriver extends Configured implements Tool
 		confAggr.setMapperClass(AggregateMapper.class);
 		confAggr.setReducerClass(AggregateReducer.class);
 			
-		confAggr.setInputFormat(SequenceFileInputFormat.class);
+		confAggr.setInputFormat(CombineSequenceFileInputFormat.class);
 		SequenceFileInputFormat.addInputPath(confAggr, new Path(args[9]));
 
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[10]));
