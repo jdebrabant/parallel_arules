@@ -11,7 +11,7 @@ SCALAR delta global confidence /0.01/ ;
 SCALAR epsilon accuracy /0.05/ ;
 SCALAR d VC-dimension /28/ ;
 SCALAR m local sample size limit /25000/ ;
-SCALAR W global sample size limit /5000000/ ;
+SCALAR p maximum number of samples /50/ ;
 
 VARIABLES
 	objval	global sample size 
@@ -32,11 +32,11 @@ phi.up	= 0.5;
 
 EQUATIONS
 	objfun		objective function (global sample size)
-	maxSampleSize	constraint on maximum sample size
+	maxNumSamples	constraint on maximum number of samples
 	Rconstr		constraint on number of votes;
 
 	objfun .. 	objval =e= N*(2/(epsilon**2))*(d+LOG(1/phi)) ;
-	maxSampleSize ..N*(2/(epsilon**2))*(d+LOG(1/phi)) =l= W ;
+	maxNumSmples .. N =l= p ;
 	Rconstr ..	N*(1-phi)-SQRT(N*(1-phi)*2*LOG(1/delta)) =g= N /2 + 1;
 
 MODEL samplesize /ALL/;
