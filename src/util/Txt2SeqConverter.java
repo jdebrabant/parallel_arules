@@ -38,6 +38,7 @@ public class Txt2SeqConverter
 		try
 		{
 		  	writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class);
+		  	//writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class, SequenceFile.CompressionType.BLOCK, new com.hadoop.compression.lzo.LzoCodec());
 			BufferedReader br = new BufferedReader(new FileReader(args[0]));
 
 			int transactionID = 0;
