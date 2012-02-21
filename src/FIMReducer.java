@@ -23,6 +23,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 	private int sampleSize;
 	private int id;
 	private float epsilon;
+	private boolean set;
 
 	@Override
 	public void configure(JobConf conf) 
@@ -31,6 +32,7 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
 		epsilon = conf.getFloat("PARMM.epsilon", 0.05f);
 		id = conf.getInt("mapred.task.partition", -1);
+		set = false;
 	}
 
 	@Override
@@ -38,7 +40,13 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 			OutputCollector<Text,DoubleWritable> output, 
 			Reporter reporter) throws IOException
 	{			
-		reporter.incrCounter("FIMReducerStart", String.valueOf(id), System.currentTimeMillis());
+		long startTime = System.currentTimeMillis();
+		if (! set)
+		{
+			reporter.incrCounter("FIMReducerStart", String.valueOf(id), startTime);
+			reporter.incrCounter("FIMReducerEnd", String.valueOf(id), startTime);
+			set = true;
+		}
 
 		// This is a very crappy way of checking whether we got the
 		// right number of transactions. It may not be too inefficient
@@ -56,7 +64,8 @@ public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Te
 		System.out.println("samplesize: " + sampleSize + " received: " + transactions.size());
 	  	FPgrowth.mineFrequentItemsets(transactions.iterator(), transactions.size(), minFreqPercent - (epsilon * 50) , output);
 		
-		reporter.incrCounter("FIMReducerEnd", String.valueOf(id), System.currentTimeMillis());
+		long endTime = System.currentTimeMillis();
+		reporter.incrCounter("FIMReducerEnd", String.valueOf(id), endTime-startTime);
 	}
 }
 

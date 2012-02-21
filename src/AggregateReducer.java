@@ -15,11 +15,12 @@ import org.apache.hadoop.mapred.Reporter;
 public class AggregateReducer extends MapReduceBase 
 	implements Reducer<Text, DoubleWritable, Text, Text>
 {
-	int id;
-	int reducersNum;
-	int reqApproxNum;
-	int sampleSize;
-	float epsilon;
+	private int id;
+	private int reducersNum;
+	private int reqApproxNum;
+	private int sampleSize;
+	private float epsilon;
+	private boolean set;
 
 	@Override
 	public void configure(JobConf conf) 
@@ -29,6 +30,7 @@ public class AggregateReducer extends MapReduceBase
 		epsilon = conf.getFloat("PARMM.epsilon", (float) 0.02);
 		sampleSize = conf.getInt("PARMM.sampleSize", 1000);
 		id = conf.getInt("mapred.task.partition", -1);
+		set = false;
 	}
 
 
@@ -38,7 +40,13 @@ public class AggregateReducer extends MapReduceBase
 			OutputCollector<Text,Text> output, 
 			Reporter reporter) throws IOException
 	{
-		reporter.incrCounter("AggregateReducerStart", String.valueOf(id), System.currentTimeMillis());
+		long startTime = System.currentTimeMillis();
+		if (! set)
+		{
+			reporter.incrCounter("AggregateReducerStart", String.valueOf(id), startTime);
+			reporter.incrCounter("AggregateReducerEnd", String.valueOf(id), startTime);
+			set = true;
+		}
 
 		ArrayList<Double> valuesArrList = new ArrayList<Double>(reqApproxNum);
 		while (values.hasNext()) 
@@ -86,7 +94,8 @@ public class AggregateReducer extends MapReduceBase
 			output.collect(itemset, new Text(estFreqAndBoundsStr));
 		} // end if (valuesArrList.size() >= requiredNum)
 
-		reporter.incrCounter("AggregateReducerEnd", String.valueOf(id), System.currentTimeMillis());
+		long endTime = System.currentTimeMillis();
+		reporter.incrCounter("AggregateReducerEnd", String.valueOf(id), endTime-startTime);
 	}
 }
 
