@@ -69,8 +69,6 @@ public class MRDriver extends Configured implements Tool
 		FileSystem fs = null;
 		Path samplesMapPath = null;
 
-		long job_start_time, job_end_time; 
-		long job_runtime; 
 		float epsilon = Float.parseFloat(args[0]);
 		double delta = Double.parseDouble(args[1]);
 		int minFreqPercent = Integer.parseInt(args[2]);
@@ -160,7 +158,7 @@ public class MRDriver extends Configured implements Tool
 
 				// create a random sample of size T*m
 				rand = new Random();
-				job_start_time = System.nanoTime(); 
+				long sampling_start_time = System.nanoTime(); 
 				int[] samples = new int[numSamples * sampleSize];
 				for (int i = 0; i < numSamples * sampleSize; i++)
 				{
@@ -203,9 +201,9 @@ public class MRDriver extends Configured implements Tool
 				out.close();
 				DistributedCache.addCacheFile(new URI(fs.getWorkingDirectory() + "/samplesMap.ser#samplesMap.ser"), conf);
 				// stop the sampling timer	
-				job_end_time = System.nanoTime(); 
-				job_runtime = (job_end_time-job_start_time) / 1000000; 
-				System.out.println("sampling runtime (milliseconds): " + job_runtime);	
+				long sampling_end_time = System.nanoTime(); 
+				long sampling_runtime = (sampling_end_time - sampling_start_time) / 1000000; 
+				System.out.println("sampling runtime (milliseconds): " + sampling_runtime);	
 				break; // end switch case
 			case 5:	
 				System.out.println("running random integer partition mapper..."); 
@@ -320,22 +318,18 @@ public class MRDriver extends Configured implements Tool
 		FileOutputFormat.setOutputPath(confAggr, new Path(args[10]));
 
 
-		job_start_time = System.nanoTime(); 
+		long FIMjob_start_time = System.currentTimeMillis(); 
 		RunningJob FIMjob = JobClient.runJob(conf);
-		job_end_time = System.nanoTime(); 
+		long FIMjob_end_time = System.currentTimeMillis(); 
 
 		RunningJob aggregateJob = JobClient.runJob(confAggr);
-		long job2_end_time = System.nanoTime(); 
+		long aggrJob_end_time = System.currentTimeMillis(); 
 			
-		job_runtime = (job_end_time-job_start_time) / 1000000; 
+		long FIMjob_runtime = FIMjob_end_time - FIMjob_start_time; 
 			
-		System.out.println("local FIM runtime (milliseconds): " + job_runtime);	
 
-		long job2_runtime = (job2_end_time-job_end_time) / 1000000; 
+		long aggrJob_runtime = aggrJob_end_time - FIMjob_end_time; 
 			
-		System.out.println("aggregation runtime (milliseconds): " +
-				job2_runtime); 
-
 		if (args[7].equals("4")) {
 			// Remove samplesMap file 
 			fs.delete(samplesMapPath, false);
@@ -423,6 +417,7 @@ public class MRDriver extends Configured implements Tool
 				FIMMapperEndMax = l;
 			}
 		}
+		System.out.println("FIM job setup time (milliseconds): " + (FIMMapperStartMin - FIMjob_start_time));
 		System.out.println("FIMMapper total runtime (milliseconds): " + (FIMMapperEndMax - FIMMapperStartMin));
 		long[] FIMMapperRunTimes = new long[FIMMapperStartTimes.length];
 		long FIMMapperRunTimesSum = 0;
@@ -464,7 +459,7 @@ public class MRDriver extends Configured implements Tool
 				FIMReducerEndMax = l;
 			}
 		}
-		System.out.println("1st round shuffle phase runtime (milliseconds): " + (FIMReducerStartMin - FIMMapperEndMax));
+		System.out.println("FIM job shuffle phase runtime (milliseconds): " + (FIMReducerStartMin - FIMMapperEndMax));
 		System.out.println("FIMReducer total runtime (milliseconds): " + (FIMReducerEndMax - FIMReducerStartMin));
 		long[] FIMReducerRunTimes = new long[FIMReducerStartTimes.length];
 		long FIMReducerRunTimesSum = 0;
@@ -489,6 +484,7 @@ public class MRDriver extends Configured implements Tool
 		}
 		System.out.println("FIMReducer minimum task runtime (milliseconds): " + FIMReducerRunTimesMin);
 		System.out.println("FIMReducer maximum task runtime (milliseconds): " + FIMReducerRunTimesMax);
+		System.out.println("FIM job cooldown time (milliseconds): " + (FIMjob_end_time - FIMReducerEndMax));
 
 		long AggregateMapperStartMin = AggregateMapperStartTimes[0];
 		for (long l : AggregateMapperStartTimes)
@@ -506,7 +502,7 @@ public class MRDriver extends Configured implements Tool
 				AggregateMapperEndMax = l;
 			}
 		}
-		System.out.println("1st-2nd round phase runtime (milliseconds): " + (AggregateMapperStartMin - FIMReducerEndMax));
+		System.out.println("Aggregation job setup time (milliseconds): " + (AggregateMapperStartMin - FIMjob_end_time));
 		System.out.println("AggregateMapper total runtime (milliseconds): " + (AggregateMapperEndMax - AggregateMapperStartMin));
 		long[] AggregateMapperRunTimes = new long[AggregateMapperStartTimes.length];
 		long AggregateMapperRunTimesSum = 0;
@@ -548,7 +544,7 @@ public class MRDriver extends Configured implements Tool
 				AggregateReducerEndMax = l;
 			}
 		}
-		System.out.println("2nd round shuffle phase runtime (milliseconds): " + (AggregateReducerStartMin - AggregateMapperEndMax));
+		System.out.println("Aggregate job round shuffle phase runtime (milliseconds): " + (AggregateReducerStartMin - AggregateMapperEndMax));
 		System.out.println("AggregateReducer total runtime (milliseconds): " + (AggregateReducerEndMax - AggregateReducerStartMin));
 		long[] AggregateReducerRunTimes = new long[AggregateReducerStartTimes.length];
 		long AggregateReducerRunTimesSum = 0;
@@ -574,8 +570,15 @@ public class MRDriver extends Configured implements Tool
 		System.out.println("AggregateReducer minimum task runtime (milliseconds): " + AggregateReducerRunTimesMin);
 		System.out.println("AggregateReducer maximum task runtime (milliseconds): " + AggregateReducerRunTimesMax);
 
-		System.out.println("total runtime (inclusive) (milliseconds): " + (job_runtime + job2_runtime));
-		System.out.println("total runtime (exclusive) (milliseconds): " + (AggregateReducerEndMax - FIMMapperStartMin));
+		System.out.println("Aggregation job cooldown time (milliseconds): " + (aggrJob_end_time - AggregateReducerEndMax));
+
+		System.out.println("total runtime (all inclusive) (milliseconds): " + (aggrJob_end_time - FIMjob_start_time));
+		System.out.println("total runtime (no FIM job setup, no aggregation job cooldown) (milliseconds): " + (AggregateReducerEndMax - FIMMapperStartMin));
+		System.out.println("total runtime (no setups, no cooldowns) (milliseconds): " + (FIMReducerEndMax - FIMMapperStartMin + AggregateReducerEndMax- AggregateMapperStartMin));
+		System.out.println("FIM job runtime (including setup and cooldown) (milliseconds): " + FIMjob_runtime);	
+		System.out.println("FIM job runtime (no setup, no cooldown) (milliseconds): " + (FIMReducerEndMax - FIMMapperStartMin));	
+		System.out.println("Aggregation job runtime (including setup and cooldown) (milliseconds): " + aggrJob_runtime); 
+		System.out.println("Aggregation job runtime (no setup, no cooldown) (milliseconds): " + (AggregateReducerEndMax - AggregateMapperStartMin)); 
 
 		return 0;
 	}
