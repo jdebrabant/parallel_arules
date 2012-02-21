@@ -19,10 +19,10 @@ import fim.fpgrowth.*;
 
 public class FIMReducer extends MapReduceBase implements Reducer<IntWritable, Text, Text, DoubleWritable>
 {
-	int minFreqPercent;
-	int sampleSize;
-	int id;
-	float epsilon;
+	private int minFreqPercent;
+	private int sampleSize;
+	private int id;
+	private float epsilon;
 
 	@Override
 	public void configure(JobConf conf) 
