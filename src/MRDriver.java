@@ -374,8 +374,8 @@ public class MRDriver extends Configured implements Tool
 			FIMReducerEndTimes[i++] = counter.getCounter();
 		}
 
-		counters = aggregateJob.getCounters();
-		Counters.Group AggregateMapperStartTimesCounters = counters.getGroup("AggregateMapperStart");
+		Counters countersAggr = aggregateJob.getCounters();
+		Counters.Group AggregateMapperStartTimesCounters = countersAggr.getGroup("AggregateMapperStart");
 		long[] AggregateMapperStartTimes = new long[AggregateMapperStartTimesCounters.size()];
 		i = 0;
 		for (Counters.Counter counter : AggregateMapperStartTimesCounters)
@@ -383,7 +383,7 @@ public class MRDriver extends Configured implements Tool
 			AggregateMapperStartTimes[i++] = counter.getCounter();
 		}
 
-		Counters.Group AggregateMapperEndTimesCounters = counters.getGroup("AggregateMapperEnd");
+		Counters.Group AggregateMapperEndTimesCounters = countersAggr.getGroup("AggregateMapperEnd");
 		long[] AggregateMapperEndTimes = new long[AggregateMapperEndTimesCounters.size()];
 		i = 0;
 		for (Counters.Counter counter : AggregateMapperEndTimesCounters)
@@ -391,7 +391,7 @@ public class MRDriver extends Configured implements Tool
 			AggregateMapperEndTimes[i++] = counter.getCounter();
 		}
 
-		Counters.Group AggregateReducerStartTimesCounters = counters.getGroup("AggregateReducerStart");
+		Counters.Group AggregateReducerStartTimesCounters = countersAggr.getGroup("AggregateReducerStart");
 		long[] AggregateReducerStartTimes = new long[AggregateReducerStartTimesCounters.size()];
 		i = 0;
 		for (Counters.Counter counter : AggregateReducerStartTimesCounters)
@@ -399,7 +399,7 @@ public class MRDriver extends Configured implements Tool
 			AggregateReducerStartTimes[i++] = counter.getCounter();
 		}
 
-		Counters.Group AggregateReducerEndTimesCounters = counters.getGroup("AggregateReducerEnd");
+		Counters.Group AggregateReducerEndTimesCounters = countersAggr.getGroup("AggregateReducerEnd");
 		long[] AggregateReducerEndTimes = new long[AggregateReducerEndTimesCounters.size()];
 		i = 0;
 		for (Counters.Counter counter : AggregateReducerEndTimesCounters)
