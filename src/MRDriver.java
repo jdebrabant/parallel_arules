@@ -574,6 +574,9 @@ public class MRDriver extends Configured implements Tool
 		System.out.println("AggregateReducer minimum task runtime (milliseconds): " + AggregateReducerRunTimesMin);
 		System.out.println("AggregateReducer maximum task runtime (milliseconds): " + AggregateReducerRunTimesMax);
 
+		System.out.println("total runtime (inclusive) (milliseconds): " + (job_runtime + job2_runtime));
+		System.out.println("total runtime (exclusive) (milliseconds): " + (AggregateReducerEndMax - FIMMapperStartMin));
+
 		return 0;
 	}
 }
