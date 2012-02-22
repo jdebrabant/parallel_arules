@@ -19,7 +19,8 @@ def main():
                     sys.stdout.write(line)
                 else:
                     deletedLines += 1
-    sys.stderr.write("{}: {} lines deleted.\n".format(sys.argv[0], deletedLines))
+    sys.stderr.write("{}: {} lines deleted from {}\n".format(sys.argv[0],
+        deletedLines, fileName))
     return 0
 
 if __name__ == "__main__":
