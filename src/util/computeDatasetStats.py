@@ -35,6 +35,7 @@ def main():
         if longer + numTransLengthDict[length] >= length:
             VCDimUpBound = length
             break
+        longer += numTransLengthDict[length]
 
     basefileName = os.path.basename(fileName)
     print("'{0}': {{'size': {1}, ''vcdimupbound': {2}, maxlen': {3},  'numitems': {4}}}".format(basefileName, size, VCDimUpBound, maxLen, len(items)))
