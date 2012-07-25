@@ -38,9 +38,9 @@ distrcount.jar:
 	javac -classpath $(CLASSPATH):distrcount/guava.jar distrcount/*java
 	cd distrcount && jar cvfm ../distrcount.jar jar-manifest *.class && cd ..
 clean: 
-	rm *.class
-	rm fim/fpgrowth/*.class
-	rm distrcount/*.class
-	rm util/*.class
-	rm *.jar
+	-rm *.class
+	-rm fim/fpgrowth/*.class
+	-rm distrcount/*.class
+	-rm util/*.class
+	-rm *.jar
 
