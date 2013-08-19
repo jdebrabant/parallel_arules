@@ -87,8 +87,8 @@ public class AggregateReducer extends MapReduceBase
 			
 			double estimatedFreq = (valuesArr[startIndex] + ((double) (valuesArr[startIndex + reducersNum -
 					 reqApproxNum] - valuesArr[startIndex])/2)) / sampleSize;
-			double confIntervalLowBound = Math.max(0, valuesArr[startIndex] / sampleSize - epsilon / 2);
-			double confIntervalUppBound = Math.min(1, valuesArr[startIndex + reducersNum - reqApproxNum] / sampleSize + epsilon / 2);
+			double confIntervalLowBound = Math.max(0, (((double)valuesArr[startIndex]) / sampleSize) - (epsilon / 2));
+			double confIntervalUppBound = Math.min(1, (((double)valuesArr[startIndex + reducersNum - reqApproxNum]) / sampleSize) + (epsilon / 2));
 			
 			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
 			output.collect(itemset, new Text(estFreqAndBoundsStr));
