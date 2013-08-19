@@ -2,7 +2,7 @@
 
  * File: MRDriver.java
  * Authors: Justin A. DeBrabant (debrabant@cs.brown.edu)
-			Matteo Riondato (matteo@cs.brown.edu)
+	    Matteo Riondato (matteo@cs.brown.edu)
  * Last Modified: 12/27/2011
  
  * Description:
@@ -10,7 +10,7 @@
  
  * Usage: java MRDriver <mapper id> <path to input database> <path to output local FIs> <path to output global FIs>
 	* mapper id - specifies which Map method should be used
-		1 for partition mapper, 2 for binomial mapper, 3 for weighted coin flip sampler 
+		1 for partition mapper, 2 for binomial mapper, 3 for weighted coin flip sampler, 4 for sampler, 5 for random integer partition,
 	* path to input database - path to file containing transactions in .dat format (1 transaction per line)
 	* local FI output - path to directory to write local (per-reducer) FIs
 	* global FI output - path to directory to write global FIs (combined from all local FIs)
