@@ -1,5 +1,5 @@
-parallel_arules
-===============
+PARMA
+=====
 
 This is the code for the PARMA algorithm.
 
