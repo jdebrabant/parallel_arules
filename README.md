@@ -1,4 +1,4 @@
-PARMA
+PARMA: A Parallel Randomized Algorithms for Approximate Association Rules Mining in MapReduce
 =====
 
 This is the code for the PARMA algorithm.
