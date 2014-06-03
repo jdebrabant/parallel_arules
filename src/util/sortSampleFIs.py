@@ -17,9 +17,17 @@ def main():
     with open(fileName) as FILE:
         for line in FILE:
             tokens = line.split("(")
+            itemsStr = tokens[0].split()
+            items = []
+            for itemStr in itemsStr:
+                items.append(int(itemStr))
+            itemsetStr = ""
+            for item in sorted(items):
+                itemsetStr += str(item) + " "
+            sortedLine = itemsetStr + "(" + tokens[1]
             tokens2 = tokens[1].split(",")
             freq = float(tokens2[0])
-            results.append((line, freq))
+            results.append((sortedLine, freq))
     results.sort(key=itemgetter(1), reverse=True)
 
     for tup in results:

@@ -8,8 +8,8 @@ def errorExit(msg):
 def main():
     # Verify arguments
     if len(sys.argv) != 3:
-        errorExit("Usage: {} MINSUP FILE\n".format(os.path.basename(sys.argv[0])))
-    minSup = int(sys.argv[1])
+        errorExit("Usage: {} DSSIZE FILE\n".format(os.path.basename(sys.argv[0])))
+    dsSize = int(sys.argv[1])
     fileName = sys.argv[2]
     if not os.path.isfile(fileName):
         errorExit("{} does not exist, or is not a file\n".format(fileName))
@@ -34,14 +34,11 @@ def main():
     sortedResults = sorted(results.items(), key=itemgetter(1), reverse=True)
 
     for tup in sortedResults:
-        if tup[1] >= minSup:
-            itemsetStr = ""
-            for item in sorted(tup[0]):
-                itemsetStr += str(item) + " " 
-            itemsetStr = itemsetStr[:-1]
-            sys.stdout.write(itemsetStr + "\t" + str(tup[1]) + "\n")
-        else:
-            break
+        itemsetStr = ""
+        for item in sorted(tup[0]):
+            itemsetStr += str(item) + " " 
+        itemsetStr = itemsetStr[:-1]
+        sys.stdout.write(itemsetStr + "\t" + str(tup[1] / dsSize) + "\n")
 
 if __name__ == '__main__':
     main()
