@@ -3,7 +3,10 @@ PARMA: A Parallel Randomized Algorithms for Approximate Association Rules Mining
 
 This is the code for the PARMA algorithm, described in M. Riondato, J.A.
 DeBrabant, R. Fonseca, and E. Upfal, "PARMA: A Parallel Randomized Algorithm for
-Approximate Association Rules Mining in MapReduce". ACM CIKM'12
+Approximate Association Rules Mining in MapReduce", ACM CIKM'12.
+
+The code was written by Matteo Riondato <matteo@cs.brown.edu> and Justin A.
+DeBrabant <debrabant@cs.brown.edu>.
 
 The code is distributed according to the Apache License Version 2.0. See the
 LICENSE and the NOTICE file.
