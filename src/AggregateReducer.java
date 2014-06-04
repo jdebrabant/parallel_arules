@@ -1,3 +1,20 @@
+/*
+ * Copyright 2012-14 Justin A. Debrabant <debrabant@cs.brown.edu> and Matteo Riondato <matteo@cs.brown.edu>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -87,8 +104,8 @@ public class AggregateReducer extends MapReduceBase
 			
 			double estimatedFreq = (valuesArr[startIndex] + ((double) (valuesArr[startIndex + reducersNum -
 					 reqApproxNum] - valuesArr[startIndex])/2)) / sampleSize;
-			double confIntervalLowBound = Math.max(0, valuesArr[startIndex] / sampleSize - epsilon / 2);
-			double confIntervalUppBound = Math.min(1, valuesArr[startIndex + reducersNum - reqApproxNum] / sampleSize + epsilon / 2);
+			double confIntervalLowBound = Math.max(0, (((double)valuesArr[startIndex]) / sampleSize) - (epsilon / 2));
+			double confIntervalUppBound = Math.min(1, (((double)valuesArr[startIndex + reducersNum - reqApproxNum]) / sampleSize) + (epsilon / 2));
 			
 			String estFreqAndBoundsStr = "(" + estimatedFreq + "," + confIntervalLowBound + "," + confIntervalUppBound + ")"; 
 			output.collect(itemset, new Text(estFreqAndBoundsStr));

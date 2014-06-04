@@ -32,7 +32,7 @@ parallel.jar: $(CLASSES) fpgrowth
 fpgrowth: fim/fpgrowth/AssocRuleMining.class fim/fpgrowth/FPgrowth.class fim/fpgrowth/FPgrowthApp.class fim/fpgrowth/FPtree.class fim/fpgrowth/TotalSupportTree.class fim/fpgrowth/TtreeNode.class
 
 converter.jar: util/Txt2SeqConverter.class util/SyntheticDatabaseGenerator.class
-	cd util && jar cvfm ../converter.jar jar-manifest Txt2SeqConverter.class && cd ..
+	cd util && jar cvfm converter.jar jar-manifest Txt2SeqConverter.class && mv converter.jar .. && cd ..
 
 distrcount.jar:
 	javac -classpath $(CLASSPATH):distrcount/guava.jar distrcount/*java
