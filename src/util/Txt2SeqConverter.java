@@ -17,7 +17,8 @@ public class Txt2SeqConverter
 	{
 	  	if (args.length != 2) 
 		{
-		  	System.out.println("Usage: env HADOOP_CLASSPATH=.:$HADOOP_CLASSPATH hadoop Txt2SeqConverter input output");
+		  	//System.out.println("Usage: env HADOOP_CLASSPATH=.:$HADOOP_CLASSPATH hadoop Txt2SeqConverter input output");
+		  	System.out.println("Usage: hadoop Txt2SeqConverter input output");
 			System.exit(1);
 		}
 	  	FileSystem fs = null;
@@ -37,8 +38,8 @@ public class Txt2SeqConverter
 		SequenceFile.Writer writer = null;
 		try
 		{
-		  	writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class);
-		  	//writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class, SequenceFile.CompressionType.BLOCK, new com.hadoop.compression.lzo.LzoCodec());
+		  	//writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class, SequenceFile.CompressionType.BLOCK);
+		  	writer = SequenceFile.createWriter(fs, conf, path, LongWritable.class, Text.class, SequenceFile.CompressionType.BLOCK, new com.hadoop.compression.lzo.LzoCodec());
 			BufferedReader br = new BufferedReader(new FileReader(args[0]));
 
 			int transactionID = 0;
